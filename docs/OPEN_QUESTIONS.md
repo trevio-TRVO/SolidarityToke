@@ -1,0 +1,4 @@
+- Valeurs exactes de `pricePerSeries` / `tokensPerSeries` (déploiement).
+- Phase 0 (100 lots à 10 USDC) : mécanisme d'attribution.
+- Anti-sybil : 1 achat/wallet est contournable par multi-wallets.
+- Tests (Foundry/Hardhat) et audit avant mainnet.
