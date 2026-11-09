@@ -25,6 +25,12 @@ Spécification complète : [docs/V3_COMMUNITY_DISTRIBUTION.md](docs/V3_COMMUNITY
 
 Spécification : [docs/SOLIDARITY_DASHBOARD.md](docs/SOLIDARITY_DASHBOARD.md) (tableau de bord sur Base, espace demandeurs, vote public par identification, distribution toutes les 24 h, limite de vente de 1 % sur les plateformes de trading uniquement).
 
+## Conseil et site web
+
+- [docs/COUNCIL.md](docs/COUNCIL.md) : composition mensuelle du conseil.
+- [docs/SITE_REQUIREMENTS.md](docs/SITE_REQUIREMENTS.md) : besoin du site.
+- `site/index.html` : maquette statique.
+
 ## Journal de bord
 
 | Date | Entrée |
@@ -37,4 +43,5 @@ Spécification : [docs/SOLIDARITY_DASHBOARD.md](docs/SOLIDARITY_DASHBOARD.md) (t
 | 2026-11-09 | Décisions : vote public (identification Google ou équivalent, une voix par compte) à la place du vote pondéré ; limite de vente de 1 % uniquement sur les plateformes de trading (P2P libre), donc plus d'exemption par bénéficiaire ; le token route seulement les 5 % vers le `solidarityWallet`, géré par un contrat dédié. |
 | 2026-11-09 | Décision : paiement automatisé. Demande = facture + description (collage bloqué) ; contrôle IA anti-bots (signale, ne paie pas) ; validation sur chaîne par au moins 5 acquéreurs de lots ; vote public ; paiement au cycle de 24 h. Principe : faire évoluer le projet en le protégeant. |
 | 2026-11-09 | Contrat `SolidarityWallet.sol` : reçoit les 5 %, paie uniquement le bénéficiaire d'une demande. Conditions : ≥ 5 validateurs acquéreurs de lots, poids du conseil ≥ 5 (10 comptes à 1, fondateur à 3, donc le fondateur a besoin de 2 membres), délai de 24 h, plafond de 20 % du solde, 1 paiement par bénéficiaire / 30 jours. Annulation : fondateur seul, ou conseil à poids 5. 10 tests. |
+| 2026-11-09 | Composition du conseil (3 pionniers, influenceur, contributeurs X/Facebook/TikTok, trader, top wallet, 1 siège élu), besoin du site et maquette statique `site/index.html`. |
 | À venir | Phase 0 (#2), V4 programme de participation (#3), anti-sybil (#4), audit. |
