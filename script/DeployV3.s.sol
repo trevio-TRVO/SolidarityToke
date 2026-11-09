@@ -17,7 +17,7 @@ import {SolidarityWallet, IERC20Min, ICommunityLots} from "../contracts/Solidari
 /// La clé privée se passe via --account / --ledger, jamais dans un fichier.
 contract DeployV3 is Script {
     uint256 public constant SUPPLY = 1_000_000_000e18;
-    uint256 public constant FOUNDER_CLIFF = 90 days; // proposé : revenu rapide, V2 = 12 mois
+    uint256 public constant FOUNDER_CLIFF = 90 days; // validé : revenu rapide, V2 = 12 mois
     uint256 public constant FOUNDER_DURATION = 3 * 365 days; // V2 = 48 mois
     uint256 public constant GROWTH_DURATION = 5 * 365 days; // même modèle que la trésorerie du V2
 

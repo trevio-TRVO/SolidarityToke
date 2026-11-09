@@ -12,7 +12,7 @@ Base : suit le V2 (`v2/`, TrvoToken) : offre fixe frappée au constructeur, aucu
 | Part | % | Destination | Vesting |
 |---|---|---|---|
 | Liquidité initiale | 50 | `LIQUIDITY_SEEDER` (exempté de la contribution pour ajouter la liquidité) | LP à verrouiller dans un locker public (24 mois comme le V2) |
-| Fondateur | 20 | `VestingWallet` OpenZeppelin | départ +90 jours, puis 36 mois linéaires (proposé : le V2 prévoyait 12 mois + 48 mois ; voir « Rémunération du fondateur ») |
+| Fondateur | 20 | `VestingWallet` OpenZeppelin | départ +90 jours, puis 36 mois linéaires (validé par le fondateur ; le V2 prévoyait 12 mois + 48 mois) |
 | Réserve communautaire et prévente | 15 | `CommunityLots` | cliff 45 j + linéaire 30 j par lot |
 | Croissance et marketing | 15 | `VestingWallet` OpenZeppelin | 60 mois linéaires (modèle trésorerie V2, hypothèse) |
 
@@ -28,7 +28,7 @@ Ensuite : ajouter la liquidité (50 %) et verrouiller les LP, vérifier les cont
 - **Auto-liquidité 1 %** : `AutoLiquidity` (contrat séparé, sans owner). Chaque appel utilise au plus 0,2 % de la réserve de la paire, tolérance de 5 % de glissement, LP envoyés à l'adresse morte. Une protection sandwich parfaite n'existe pas sans oracle de prix : les montants plafonnés limitent le risque.
 - **Paires** : seules les paires de type Uniswap V2 (ou équivalents) sont gérées. Une vente par un pool V3/V4 échappe à la contribution et à la limite : ne déployer que sur un pool V2.
 - **Adresse de la paire** : elle dépend de l'adresse du token (prédite par le script) ; à calculer avec la factory officielle (adresses et init code hash à vérifier dans la documentation officielle de Base).
-- **Hypothèses de vesting** (fondateur, croissance) : à confirmer.
+- **Vesting du fondateur** : validé le 2026-11-09. **Vesting croissance** (60 mois linéaires) : à confirmer.
 
 ## Rémunération du fondateur
 Les 20 % du fondateur sont verrouillés : 90 jours sans déblocage, puis 36 mois linéaires (environ 5,5 M BILL par mois), vendables dans les limites ci-dessus. Pendant les 90 premiers jours, aucun déblocage de ce lot : la rémunération doit venir du budget opérationnel (2 % de chaque trade, `operationsWallet`) ou du fonds de croissance, dans des règles publiques. Le fondateur n'est exempté d'aucune limite, ce qui protège aussi la confiance des détenteurs.
