@@ -115,6 +115,7 @@ contract SolidarityWallet {
         require(r.status == Status.Open, "not open");
         uint256 w = _weightOf(msg.sender);
         require(w > 0, "not council");
+        require(msg.sender != r.payee, "payee");
         require(!approved[id][msg.sender], "already approved");
         approved[id][msg.sender] = true;
         _approvers[id].push(msg.sender);
@@ -151,6 +152,7 @@ contract SolidarityWallet {
         require(r.status == Status.Open, "not open");
         require(r.validators >= MIN_VALIDATORS, "validators");
         require(_liveWeight(_approvers[id]) >= THRESHOLD, "council weight");
+        require(r.amount <= token.balanceOf(address(this)) * MAX_BPS_PER_PAYMENT / 10_000, "above cap");
         require(block.timestamp >= r.validatedAt + CYCLE, "cycle not elapsed");
         require(_cooledDown(r.payee), "payee cooldown");
         r.status = Status.Executed;

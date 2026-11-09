@@ -92,10 +92,10 @@ contract CouncilRegistry {
         }
     }
 
-    function _validate(address[COUNCIL_SIZE] memory list, address _founder) internal pure {
+    function _validate(address[COUNCIL_SIZE] memory list, address _founder) internal view {
         for (uint256 i; i < COUNCIL_SIZE; i++) {
             address m = list[i];
-            require(m != address(0) && m != _founder, "bad member");
+            require(m != address(0) && m != _founder && !isElectionSigner[m], "bad member");
             for (uint256 j; j < i; j++) require(list[j] != m, "duplicate member");
         }
     }

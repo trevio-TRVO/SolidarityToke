@@ -250,4 +250,34 @@ contract SolidarityWalletTest {
         (,,,,, SolidarityWallet.Status s) = w.requests(id);
         require(s == SolidarityWallet.Status.Open, "still open");
     }
+
+    function testPayeeCannotApproveOwnRequest() public {
+        uint256 id = w.createRequest(council[0], 100e18, bytes32(0));
+        vm.prank(council[0]); vm.expectRevert("payee"); w.approve(id);
+        uint256 id2 = w.createRequest(founder, 100e18, bytes32(0));
+        vm.prank(founder); vm.expectRevert("payee"); w.approve(id2);
+    }
+
+    function testCapIsRecheckedAtExecution() public {
+        uint256 a = w.createRequest(address(0xCA1), 200e18, bytes32(0));
+        uint256 b = w.createRequest(address(0xCA2), 200e18, bytes32(0));
+        _validate(a, 5); _validate(b, 5);
+        for (uint256 i; i < 5; i++) { _approve(a, council[i]); _approve(b, council[i]); }
+        vm.warp(block.timestamp + 24 hours);
+        w.execute(a);
+        vm.expectRevert("above cap");
+        w.execute(b);
+    }
+
+    function testElectionSignerCannotSitOnCouncil() public {
+        address[] memory sigs = new address[](1);
+        sigs[0] = council[3];
+        vm.expectRevert("bad member");
+        new CouncilRegistry(founder, council, sigs, 1);
+
+        address[10] memory list = council;
+        list[0] = sig1;
+        vm.warp(block.timestamp + 30 days);
+        vm.prank(sig1); vm.expectRevert("bad member"); reg.confirmRotation(list);
+    }
 }

@@ -92,11 +92,13 @@ contract AutoLiquidity {
         (rToken, rUsdc) = _reserves();
         uint256 usdcBal = usdc.balanceOf(address(this));
         uint256 tokenForLp = harvest - sold;
+        uint256 fromStock;
         uint256 needed = (usdcBal * rToken) / rUsdc;
         if (needed > tokenForLp) {
             uint256 extra = needed - tokenForLp;
             if (extra > stockLeft) extra = stockLeft;
             stockLeft -= extra;
+            fromStock = extra;
             tokenForLp += extra;
         }
         if (needed > tokenForLp) usdcBal = (tokenForLp * rUsdc) / rToken;
@@ -113,6 +115,9 @@ contract AutoLiquidity {
             DEAD,
             block.timestamp
         );
+        // la part de réserve non consommée par le routeur retourne en stock (sinon elle serait revendue comme récolte)
+        uint256 unused = tokenForLp - aT;
+        if (unused > 0 && fromStock > 0) stockLeft += unused < fromStock ? unused : fromStock;
         emit LiquidityAdded(sold, aU, aT, lp);
     }
 }
