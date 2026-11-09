@@ -12,5 +12,5 @@ Contrat : `contracts/CommunityLots.sol` (Solidity ^0.8.20, sans owner, paramètr
 - Lots gratuits : 10 sous-wallets du wallet spécial ; attribution permissionless via `allocateFree(série)`. Programme/campagne (3 admins aléatoires par lot) = **V4**.
 - Pool plafonné : le contrat doit être préfinancé ; `outstanding <= balance` est vérifié à chaque attribution.
 
-## Suivi
-Voir les issues du dépôt.
+
+
