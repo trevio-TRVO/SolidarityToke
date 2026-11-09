@@ -7,14 +7,16 @@ import {VestingWallet} from "@openzeppelin/contracts/finance/VestingWallet.sol";
 import {BillPayProtocol} from "../contracts/BillPayProtocol.sol";
 import {CommunityLots, IERC20, IPair} from "../contracts/CommunityLots.sol";
 import {AutoLiquidity, IERC20AL, IRouterV2, IPairV2} from "../contracts/AutoLiquidity.sol";
-import {SolidarityWallet, IERC20Min, ICommunityLots} from "../contracts/SolidarityWallet.sol";
+import {CouncilRegistry} from "../contracts/CouncilRegistry.sol";
+import {SolidarityWallet, IERC20Min, ICommunityLots, ICouncilRegistry} from "../contracts/SolidarityWallet.sol";
 
 /// Répartition de 1 000 000 000 BILL :
 ///   50 % liquidité initiale BILL/USDC (LIQUIDITY_SEEDER) · 20 % fondateur (VestingWallet)
 ///   15 % CommunityLots (dont 1 % pionniers) · 15 % croissance et marketing (MonthlyVesting, 48 mois)
 /// Les adresses des contrats sont prédites par nonce car elles se référencent mutuellement.
 /// Variables : FOUNDER, LIQUIDITY_SEEDER, OPERATIONS_WALLET, GROWTH_BENEFICIARY, PAIR,
-/// USDC, TREASURY, ROUTER, COUNCIL (10 adresses, virgules), FREE_WALLETS (10 adresses).
+/// USDC, TREASURY, ROUTER, COUNCIL (les 10 sièges initiaux, virgules), FREE_WALLETS (10 adresses),
+/// ELECTION_SIGNERS (signataires d'élection fixes, virgules), ELECTION_THRESHOLD (seuil M).
 /// La clé privée se passe via --account / --ledger, jamais dans un fichier.
 contract DeployV3 is Script {
     uint256 public constant SUPPLY = 1_000_000_000e18;
@@ -25,6 +27,7 @@ contract DeployV3 is Script {
     struct Deployed {
         address founderVesting;
         address growthVesting;
+        address registry;
         address solidarity;
         address lots;
         address autoLiquidity;
@@ -34,10 +37,11 @@ contract DeployV3 is Script {
     function run() external returns (Deployed memory d) {
         address deployer = msg.sender;
         uint256 n = vm.getNonce(deployer);
-        address predictedToken = vm.computeCreateAddress(deployer, n + 5);
-        address predictedLots = vm.computeCreateAddress(deployer, n + 3);
-        address predictedAutoLiq = vm.computeCreateAddress(deployer, n + 4);
-        address predictedSolidarity = vm.computeCreateAddress(deployer, n + 2);
+        address predictedToken = vm.computeCreateAddress(deployer, n + 6);
+        address predictedLots = vm.computeCreateAddress(deployer, n + 4);
+        address predictedAutoLiq = vm.computeCreateAddress(deployer, n + 5);
+        address predictedSolidarity = vm.computeCreateAddress(deployer, n + 3);
+        address predictedRegistry = vm.computeCreateAddress(deployer, n + 2);
 
         vm.startBroadcast();
         d.founderVesting = address(
@@ -47,10 +51,22 @@ contract DeployV3 is Script {
             new MonthlyVesting(vm.envAddress("GROWTH_BENEFICIARY"), block.timestamp, GROWTH_MONTHS)
         );
 
-        address[10] memory council = _toTen(vm.envAddress("COUNCIL", ","));
+        d.registry = address(
+            new CouncilRegistry(
+                vm.envAddress("FOUNDER"),
+                _toTen(vm.envAddress("COUNCIL", ",")),
+                vm.envAddress("ELECTION_SIGNERS", ","),
+                vm.envUint("ELECTION_THRESHOLD")
+            )
+        );
+        require(d.registry == predictedRegistry, "nonce: registry");
+
         d.solidarity = address(
             new SolidarityWallet(
-                IERC20Min(predictedToken), ICommunityLots(predictedLots), vm.envAddress("FOUNDER"), council
+                IERC20Min(predictedToken),
+                ICommunityLots(predictedLots),
+                vm.envAddress("FOUNDER"),
+                ICouncilRegistry(d.registry)
             )
         );
         require(d.solidarity == predictedSolidarity, "nonce: solidarity");
@@ -83,6 +99,7 @@ contract DeployV3 is Script {
         console2.log("BillPayProtocol", d.token);
         console2.log("CommunityLots", d.lots);
         console2.log("AutoLiquidity", d.autoLiquidity);
+        console2.log("CouncilRegistry", d.registry);
         console2.log("SolidarityWallet", d.solidarity);
         console2.log("FounderVesting", d.founderVesting);
         console2.log("GrowthVesting", d.growthVesting);

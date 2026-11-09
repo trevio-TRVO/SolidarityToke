@@ -14,7 +14,10 @@ Mandat **mensuel**. Le fondateur garde son poids de 3 ; le conseil compte 10 si�
 | 10 | Siège élu | Vote sur le site web |
 
 ## Points à trancher
-- **Le contrat actuel fige le conseil** (immutable). Une rotation mensuelle exige une nouvelle version de `SolidarityWallet` : mise à jour des 10 sièges une fois par mois, par un mécanisme sans clé unique (ex. un contrat `CouncilRegistry` alimenté par les résultats).
+- **Rotation : implémentée** (`contracts/CouncilRegistry.sol`). Le `SolidarityWallet` lit le conseil dans le registre (adresse immuable). Pas d'owner : la rotation est confirmée par un ensemble **fixe** de signataires d'élection (immutable), seuil M sur N. Chaque signataire confirme la même liste exacte de 10 adresses ; au M-ième appel `confirmRotation`, la liste s'applique. Au plus une rotation par 30 jours (la première, 30 jours après le déploiement), 10 adresses distinctes, non nulles, différentes du fondateur. Événements : `RotationConfirmed`, `CouncilRotated`.
+- **Pourquoi pas un vote du conseil sortant** : une supermajorité du conseil pourrait se reconduire et verrouiller le pouvoir. Les signataires ne siègent pas et ne publient que le résultat des élections.
+- **Effets de la rotation** : un membre retiré perd tout droit de vote ; ses approbations et votes d'annulation sur les demandes ouvertes ne comptent plus (poids recalculé à l'exécution). Le fondateur n'est jamais affecté.
+- **Risque résiduel** : M signataires complices peuvent imposer un conseil, au plus une fois par mois ; l'ensemble des signataires ne change jamais (en cas de compromission, il faudrait un nouveau déploiement). À mitiger par des multisigs publics.
 - **Résultats hors chaîne** (X, Facebook, TikTok, influenceur, vote web) : il faut un oracle ou un comité qui publie le résultat sur la chaîne. C'est un point de confiance à encadrer.
 - **Wallet la plus fournie** : exclure la paire de liquidité, les contrats (lots, solidarityWallet), le fondateur et les adresses d'échange. Risque de rotation artificielle entre wallets avant la clôture : utiliser la moyenne du solde sur le mois.
 - **Meilleur trader** : risque de wash trading ; calculer sur le PnL net ou le volume avec plafond.
