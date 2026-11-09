@@ -22,7 +22,7 @@ Base : suit le V2 (`v2/`, TrvoToken) : offre fixe frappée au constructeur, aucu
 
 `forge script script/DeployV3.s.sol --rpc-url base_sepolia --account <keystore> --broadcast`
 
-Ensuite : ajouter la liquidité (500 000 000 BILL + USDC ; au prix de lancement 0,0001 USDC/BILL, cela représente **50 000 USDC** à fournir), verrouiller les LP, appeler `CommunityLots.update()`, vérifier les contrats sur Basescan.
+Ensuite : ajouter la liquidité (500 000 BILL + **50 USDC** au prix de lancement 0,0001 USDC/BILL ; les 499 500 000 BILL restants sont déposés dans `AutoLiquidity` et injectés peu à peu, appariés aux USDC issus de la vente de la contribution de 1 %), verrouiller les LP, appeler `CommunityLots.update()`, vérifier les contrats sur Basescan.
 
 ## Écarts connus avec la spécification
 - **Protection de lancement (7 jours)** : ventes vers une paire limitées à 0,1 % de l'offre par transaction (1 000 000 BILL) et 0,2 % par wallet et par 24 h. Ensuite : 1 % par transaction et 1 % par wallet et par 24 h. Les achats et le P2P ne sont pas limités ; l'ajout de liquidité initial est exempté. Limite connue : un détenteur peut répartir ses jetons sur plusieurs wallets pour multiplier la limite (le P2P est libre). Elle ralentit une vente massive sans l'empêcher totalement.
@@ -30,7 +30,7 @@ Ensuite : ajouter la liquidité (500 000 000 BILL + USDC ; au prix de lancement 
 - **Paires** : seules les paires de type Uniswap V2 (ou équivalents) sont gérées. Une vente par un pool V3/V4 échappe à la contribution et à la limite : ne déployer que sur un pool V2.
 - **Adresse de la paire** : elle dépend de l'adresse du token (prédite par le script) ; à calculer avec la factory officielle (adresses et init code hash à vérifier dans la documentation officielle de Base).
 - **Vesting** : fondateur (90 j + 36 mois) et croissance (48 mois mensuels) validés.
-- **Valeur de lancement** : 0,0001 USDC/BILL (valeur totale diluée de 100 000 USDC) découle des lots pionniers (10 USDC pour 100 000 BILL) et de la liquidité de 50 000 USDC. À confirmer.
+- **Valeur de lancement** : 0,0001 USDC/BILL (valeur totale diluée de 100 000 USDC) découle des lots pionniers et de la liquidité de 500 000 BILL + 50 USDC. À confirmer.
 - **TWAP** : fenêtre de 1 h minimum, manipulable à coût élevé mais non nul ; un oracle externe (Chainlink) n'existe pas pour BILL.
 
 ## Rémunération du fondateur

@@ -46,9 +46,12 @@ contract AutoLiquidity {
     IERC20AL public immutable usdc;
     IRouterV2 public immutable router;
     IPairV2 public immutable pair;
+    /// Réserve initiale (499 500 000 BILL) : injectée progressivement en face des USDC récoltés.
+    uint256 public constant INITIAL_STOCK = 499_500_000e18;
+    uint256 public stockLeft = INITIAL_STOCK;
     uint256 public lastRun;
 
-    event LiquidityAdded(uint256 tokensSold, uint256 usdcReceived, uint256 lpTokens);
+    event LiquidityAdded(uint256 tokensSold, uint256 usdcAdded, uint256 tokensAdded, uint256 lpTokens);
 
     constructor(IERC20AL _token, IERC20AL _usdc, IRouterV2 _router, IPairV2 _pair) {
         token = _token;
@@ -57,32 +60,50 @@ contract AutoLiquidity {
         pair = _pair;
     }
 
+    function _reserves() internal view returns (uint256 rToken, uint256 rUsdc) {
+        (uint256 r0, uint256 r1,) = pair.getReserves();
+        (rToken, rUsdc) = pair.token0() == address(token) ? (r0, r1) : (r1, r0);
+    }
+
+    /// @notice Récolte la contribution de 1 % (hors réserve initiale), la vend en USDC, puis ajoute
+    /// la liquidité avec la quantité de BILL correspondante prise sur la réserve initiale.
     function addLiquidity() external {
         require(block.timestamp >= lastRun + COOLDOWN, "cooldown");
         lastRun = block.timestamp;
 
-        (uint256 r0, uint256 r1,) = pair.getReserves();
-        (uint256 rToken, uint256 rUsdc) = pair.token0() == address(token) ? (r0, r1) : (r1, r0);
-        uint256 amount = token.balanceOf(address(this));
+        (uint256 rToken, uint256 rUsdc) = _reserves();
+        uint256 bal = token.balanceOf(address(this));
+        uint256 harvest = bal > stockLeft ? bal - stockLeft : 0;
         uint256 cap = (rToken * MAX_BPS_OF_RESERVE) / 10_000;
-        if (amount > cap) amount = cap;
-        require(amount > 1, "nothing to add");
+        if (harvest > cap) harvest = cap;
+        require(harvest > 1, "nothing to add");
 
-        uint256 half = amount / 2;
-        // sortie attendue du swap (formule Uniswap V2, frais 0,3 %), puis tolérance de 5 %
-        uint256 expected = (half * 997 * rUsdc) / (rToken * 1000 + half * 997);
+        // réserve initiale restante : tout est vendu ; sinon moitié vendue, moitié en liquidité
+        uint256 sold = stockLeft > 0 ? harvest : harvest / 2;
+        uint256 expected = (sold * 997 * rUsdc) / (rToken * 1000 + sold * 997);
         address[] memory path = new address[](2);
         path[0] = address(token);
         path[1] = address(usdc);
-        token.approve(address(router), amount);
+        token.approve(address(router), sold);
         router.swapExactTokensForTokensSupportingFeeOnTransferTokens(
-            half, (expected * (10_000 - SLIPPAGE_BPS)) / 10_000, path, address(this), block.timestamp
+            sold, (expected * (10_000 - SLIPPAGE_BPS)) / 10_000, path, address(this), block.timestamp
         );
 
+        (rToken, rUsdc) = _reserves();
         uint256 usdcBal = usdc.balanceOf(address(this));
-        uint256 tokenForLp = amount - half;
+        uint256 tokenForLp = harvest - sold;
+        uint256 needed = (usdcBal * rToken) / rUsdc;
+        if (needed > tokenForLp) {
+            uint256 extra = needed - tokenForLp;
+            if (extra > stockLeft) extra = stockLeft;
+            stockLeft -= extra;
+            tokenForLp += extra;
+        }
+        if (needed > tokenForLp) usdcBal = (tokenForLp * rUsdc) / rToken;
+
+        token.approve(address(router), tokenForLp);
         usdc.approve(address(router), usdcBal);
-        (,, uint256 lp) = router.addLiquidity(
+        (uint256 aT, uint256 aU, uint256 lp) = router.addLiquidity(
             address(token),
             address(usdc),
             tokenForLp,
@@ -92,6 +113,6 @@ contract AutoLiquidity {
             DEAD,
             block.timestamp
         );
-        emit LiquidityAdded(half, usdcBal, lp);
+        emit LiquidityAdded(sold, aU, aT, lp);
     }
 }

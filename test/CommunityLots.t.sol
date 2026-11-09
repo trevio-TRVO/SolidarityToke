@@ -83,25 +83,26 @@ contract CommunityLotsTest {
         vm.prank(y); vm.expectRevert("pioneers sold out"); lots.buyPioneer();
     }
 
-    function testPaidLotPriceIsHalfOfMarket() public {
+    function testPaidLotDeliversTwiceThePrice() public {
         _oracle();
-        // marché : 0,0001 USDC/BILL -> lot = 10 USDC ; prix = 5 USDC
-        uint256 mv = lots.lotMarketValue();
-        require(mv >= 9_999_000 && mv <= 10e6, "market value");
-        uint256 price = lots.lotPrice();
-        require(price >= 4_999_500 && price <= 5e6, "50%");
+        // marché : 0,0001 USDC/BILL -> 5 USDC payés = 10 USDC de BILL = environ 100 000 BILL
         address b = _buyer(1);
         vm.prank(b); lots.buy();
-        require(usdc.balanceOf(treasury) == price, "paid");
+        require(usdc.balanceOf(treasury) == 5e6, "paid");
+        (uint128 total,,) = lots.grants(b, 0);
+        require(total >= 99_900e18 && total <= 100_100e18, "about 100k");
     }
 
-    function testPriceFollowsMarketTwap() public {
+    function testLotQuantityShrinksWhenPriceRises() public {
         _oracle();
-        pair.setUsdc(100_000e6); // le prix double
+        uint256 before_ = lots.lotTokens();
+        pair.setUsdc(200_000e6); // le prix quadruple
         vm.warp(block.timestamp + 1 days);
         lots.update();
         vm.warp(block.timestamp + 2 hours);
-        require(lots.lotPrice() > 5e6 && lots.lotPrice() <= 10e6, "twap moves");
+        require(lots.lotTokens() < before_, "fewer tokens");
+        // jamais plus de x2 : valeur livrée <= 10 USDC
+        require(lots.lotTokens() <= before_, "never above x2");
     }
 
     function testNoOracleNoBuy() public {
@@ -125,6 +126,7 @@ contract CommunityLotsTest {
     function testFreeLotsGoToTenWalletsOnce() public {
         vm.expectRevert("series not open");
         lots.allocateFree(2);
+        _oracle();
         lots.allocateFree(1);
         for (uint256 i; i < 10; i++) require(lots.grantCount(free[i]) == 1, "grant");
         vm.expectRevert("done");

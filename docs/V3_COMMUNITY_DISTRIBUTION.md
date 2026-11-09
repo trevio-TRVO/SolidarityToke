@@ -10,13 +10,15 @@ Contrat : `contracts/CommunityLots.sol` (sans owner, paramètres immuables).
 
 Total : (100 + 14 × 100) × 100 000 = 150 000 000 BILL.
 
-## Prix
-- Lot payant = **50 % de la valeur de marché** : le prix suit le marché (TWAP de la paire BILL/USDC), donc l'acheteur reçoit 200 % de ce qu'il paie. Le prix n'est plus doublé à chaque vente : il suit le marché.
-- Oracle TWAP : point d'observation public `update()` (au plus toutes les 24 h), fenêtre minimale de 1 h. Il faut appeler `update()` après l'ajout de liquidité, puis attendre 1 h avant le premier achat de série continue.
+## Prix et quantité
+- Lot pionnier : **fixe** (100 000 BILL pour 5 USDC, valeur 10 USDC au prix de lancement 0,0001 USDC/BILL).
+- Lots suivants : 5 USDC contre **10 USDC de BILL au cours TWAP** (x2, jamais plus). La quantité varie avec le prix : plus BILL monte, moins le lot contient de tokens (rareté). Plafond de sécurité : 1 000 000 BILL par lot.
+- Les lots invendus restent dans le contrat (aucun burn, aucune sortie).
+- Oracle TWAP (paire BILL/USDC) : `update()` public (au plus toutes les 24 h), fenêtre minimale de 1 h. Appeler `update()` après l'ajout de liquidité, puis attendre 1 h.
 - Un lot par wallet.
 
 ## Lots gratuits
-- 10 lots par série vont aux 10 sous-wallets du wallet spécial (programme de participation, géré par le V4 : campagne, 3 administrateurs tirés au sort par lot). `allocateFree(série)` est public et ne peut être appelé qu'une fois par série.
+- 10 lots par série (même quantité que les lots payants, 10 USDC de valeur) vont aux 10 sous-wallets du wallet spécial (programme de participation, géré par le V4 : campagne, 3 administrateurs tirés au sort par lot). `allocateFree(série)` est public et ne peut être appelé qu'une fois par série.
 
 ## Vesting par lot
 - Cliff de 45 jours à partir de l'achat, puis déblocage linéaire sur 30 jours. Aucun claim anticipé.

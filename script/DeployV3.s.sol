@@ -90,9 +90,11 @@ contract DeployV3 is Script {
 
     function _deployToken(Deployed memory d) internal returns (address) {
         address seeder = vm.envAddress("LIQUIDITY_SEEDER");
-        address[] memory r = new address[](4);
-        uint256[] memory a = new uint256[](4);
-        r[0] = seeder;            a[0] = SUPPLY * 50 / 100;
+        address[] memory r = new address[](5);
+        uint256[] memory a = new uint256[](5);
+        // 50 % = 500 000 BILL injectés au lancement (face à 50 USDC) + 499 500 000 BILL en réserve AutoLiquidity
+        r[4] = d.autoLiquidity;   a[4] = 499_500_000e18;
+        r[0] = seeder;            a[0] = SUPPLY * 50 / 100 - a[4];
         r[1] = d.founderVesting;  a[1] = SUPPLY * 20 / 100;
         r[2] = d.lots;            a[2] = SUPPLY * 15 / 100;
         r[3] = d.growthVesting;   a[3] = SUPPLY * 15 / 100;

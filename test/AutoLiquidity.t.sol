@@ -63,14 +63,15 @@ contract AutoLiquidityTest {
         token = new MToken(); usdc = new MToken(); router = new MRouter(token, usdc);
         usdc.mint(address(router), 1_000e6);
         al = _new();
-        token.mint(address(al), 50_000e18);
+        token.mint(address(al), 499_500_000e18 + 50_000e18);
     }
 
     function testAddsLimitedAmountAndLocksLp() public {
         al.addLiquidity();
-        // plafond : 0,2 % de 1 000 000 = 2 000 tokens ; la moitié est vendue
-        require(token.balanceOf(address(al)) == 48_000e18, "cap");
-        require(token.balanceOf(address(router)) == 2_000e18, "router got 2000");
+        // plafond : 0,2 % de 1 000 000 = 2 000 tokens récoltés
+        // 2 000 BILL récoltés vendus en USDC, puis liquidité appariée depuis la réserve initiale
+        require(al.stockLeft() < 499_500_000e18, "stock used");
+        require(token.balanceOf(address(al)) == al.stockLeft() + 48_000e18, "harvest capped");
         require(router.lastLpTo() == 0x000000000000000000000000000000000000dEaD, "lp burned");
         require(router.lastMin() > 0, "slippage floor");
     }

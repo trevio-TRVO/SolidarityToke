@@ -30,7 +30,9 @@ contract CommunityLots {
     uint256 public constant PAID_LOTS = 90;
     uint256 public constant FREE_LOTS = 10;
     uint256 public constant SERIES_INTERVAL = 30 days;
-    uint256 public constant DISCOUNT_BPS = 5000; // prix = 50 % de la valeur de marché
+    uint256 public constant LOT_PRICE = 5e6; // 5 USDC, prix d'un lot payant
+    uint256 public constant LOT_VALUE = 10e6; // valeur de marché livrée (x2) : 10 USDC
+    uint256 public constant MAX_LOT_TOKENS = 1_000_000e18; // plafond de sécurité si le prix s'effondre
     uint256 public constant CLIFF = 45 days;
     uint256 public constant VESTING = 30 days;
     uint256 public constant UPDATE_INTERVAL = 24 hours;
@@ -104,23 +106,23 @@ contract CommunityLots {
         emit OracleUpdated(block.timestamp);
     }
 
-    /// @notice USDC (6 déc.) correspondant à la valeur de marché d'un lot (TWAP).
-    function lotMarketValue() public view returns (uint256) {
+    function _twap() internal view returns (uint256 avg) {
         Obs memory o = cur;
         if (o.t == 0 || block.timestamp < uint256(o.t) + MIN_TWAP_WINDOW) o = prev;
         require(o.t != 0, "no oracle");
         uint256 dt;
-        uint256 avg;
         unchecked {
             dt = uint32(block.timestamp) - o.t;
             avg = (_currentCumulative() - o.cum) / dt;
         }
-        return (avg * LOT_TOKENS) >> 112;
+        require(avg > 0, "no price");
     }
 
-    function lotPrice() public view returns (uint256) {
-        uint256 p = (lotMarketValue() * DISCOUNT_BPS) / 10_000;
-        return p == 0 ? 1 : p;
+    /// @notice Quantité de BILL livrée pour une valeur de marché de 10 USDC (x2 du prix payé).
+    /// Le premier lot (pionnier) est fixe ; ensuite la quantité suit le prix : jamais plus que x2.
+    function lotTokens() public view returns (uint256 t) {
+        t = (LOT_VALUE << 112) / _twap();
+        if (t > MAX_LOT_TOKENS) t = MAX_LOT_TOKENS;
     }
 
     // ---------- séries ----------
@@ -143,23 +145,23 @@ contract CommunityLots {
         require(pioneerSold < PIONEER_LOTS, "pioneers sold out");
         hasBought[msg.sender] = true;
         pioneerSold++;
-        _sell(PIONEER_PRICE, true);
+        _sell(PIONEER_PRICE, true, LOT_TOKENS);
     }
 
-    /// @notice Lot de série continue : 50 % de la valeur de marché (TWAP).
+    /// @notice Lot de série continue : 5 USDC contre 10 USDC de BILL au cours TWAP (x2).
     function buy() external {
         require(!hasBought[msg.sender], "already bought");
         require(paidSold < SERIES_COUNT * PAID_LOTS, "sold out");
         require(availablePaidLots() > 0, "next series not open");
         hasBought[msg.sender] = true;
         paidSold++;
-        _sell(lotPrice(), false);
+        _sell(LOT_PRICE, false, lotTokens());
     }
 
-    function _sell(uint256 price, bool pioneer) internal {
-        _commit(LOT_TOKENS);
+    function _sell(uint256 price, bool pioneer, uint256 tokens) internal {
+        _commit(tokens);
         require(usdc.transferFrom(msg.sender, treasury, price), "payment failed");
-        grants[msg.sender].push(Grant(uint128(LOT_TOKENS), 0, uint64(block.timestamp)));
+        grants[msg.sender].push(Grant(uint128(tokens), 0, uint64(block.timestamp)));
         emit Purchased(msg.sender, pioneer, price);
     }
 
@@ -168,9 +170,10 @@ contract CommunityLots {
         require(series >= 1 && series <= openedSeries(), "series not open");
         require(!freeAllocated[series], "done");
         freeAllocated[series] = true;
-        _commit(LOT_TOKENS * FREE_LOTS);
+        uint256 tokens = lotTokens();
+        _commit(tokens * FREE_LOTS);
         for (uint256 i; i < FREE_LOTS; i++) {
-            grants[freeWallets[i]].push(Grant(uint128(LOT_TOKENS), 0, uint64(block.timestamp)));
+            grants[freeWallets[i]].push(Grant(uint128(tokens), 0, uint64(block.timestamp)));
         }
         emit FreeAllocated(series);
     }
