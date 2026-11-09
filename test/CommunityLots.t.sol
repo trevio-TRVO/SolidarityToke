@@ -61,6 +61,16 @@ contract CommunityLotsTest {
         vm.prank(b); usdc.approve(address(lots), type(uint256).max);
     }
 
+    // le prix monte x12 (0,0012 USDC/BILL), puis les séries sont lancées
+    function _launch() internal {
+        _oracle();
+        pair.setUsdc(600_000e6);
+        vm.warp(block.timestamp + 1 days);
+        lots.update();
+        vm.warp(block.timestamp + 2 hours);
+        lots.openSeries();
+    }
+
     function _oracle() internal {
         lots.update();
         vm.warp(block.timestamp + 2 hours);
@@ -69,7 +79,7 @@ contract CommunityLotsTest {
     function testPioneerLotFixedPriceAndSupply() public {
         address b = _buyer(1);
         vm.prank(b); lots.buyPioneer();
-        require(usdc.balanceOf(treasury) == 5e6, "5 USDC");
+        require(usdc.balanceOf(treasury) == 10e6, "10 USDC");
         (uint128 total,,) = lots.grants(b, 0);
         require(total == LOT, "100k BILL");
     }
@@ -84,13 +94,29 @@ contract CommunityLotsTest {
     }
 
     function testPaidLotDeliversTwiceThePrice() public {
-        _oracle();
-        // marché : 0,0001 USDC/BILL -> 5 USDC payés = 10 USDC de BILL = environ 100 000 BILL
+        _launch();
+        // marché : 0,0012 USDC/BILL -> 50 USDC payés = 100 USDC de BILL = environ 83 333 BILL
         address b = _buyer(1);
         vm.prank(b); lots.buy();
-        require(usdc.balanceOf(treasury) == 5e6, "paid");
+        require(usdc.balanceOf(treasury) == 50e6, "paid");
         (uint128 total,,) = lots.grants(b, 0);
-        require(total >= 99_900e18 && total <= 100_100e18, "about 100k");
+        require(total >= 83_000e18 && total <= 83_500e18, "about 83k");
+    }
+
+    function testSeriesDoNotOpenAtLaunchPrice() public {
+        _oracle();
+        vm.expectRevert("price too low");
+        lots.openSeries();
+        address b = _buyer(1);
+        vm.prank(b); vm.expectRevert("next series not open"); lots.buy();
+        vm.expectRevert("series not open");
+        lots.allocateFree(1);
+    }
+
+    function testSeriesOpenOnlyOnce() public {
+        _launch();
+        vm.expectRevert("already open");
+        lots.openSeries();
     }
 
     function testLotQuantityShrinksWhenPriceRises() public {
@@ -107,16 +133,17 @@ contract CommunityLotsTest {
 
     function testNoOracleNoBuy() public {
         address b = _buyer(1);
-        vm.prank(b); vm.expectRevert("no oracle"); lots.buy();
+        vm.expectRevert("no oracle"); lots.openSeries();
     }
 
     function testSeriesOpenEvery30Days() public {
-        _oracle();
+        _launch();
+        uint256 s0 = lots.seriesStart();
         require(lots.availablePaidLots() == 90, "series 1");
         for (uint256 i; i < 90; i++) { address x = _buyer(i); vm.prank(x); lots.buy(); }
         address y = _buyer(900);
         vm.prank(y); vm.expectRevert("next series not open"); lots.buy();
-        vm.warp(T0 + 30 days);
+        vm.warp(s0 + 30 days);
         lots.update();
         vm.warp(block.timestamp + 2 hours);
         require(lots.availablePaidLots() == 90, "series 2");
@@ -124,9 +151,9 @@ contract CommunityLotsTest {
     }
 
     function testFreeLotsGoToTenWalletsOnce() public {
+        _launch();
         vm.expectRevert("series not open");
         lots.allocateFree(2);
-        _oracle();
         lots.allocateFree(1);
         for (uint256 i; i < 10; i++) require(lots.grantCount(free[i]) == 1, "grant");
         vm.expectRevert("done");

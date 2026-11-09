@@ -21,6 +21,12 @@ Vocabulaire : on parle de **contribution solidaire** ou de **prélèvement répa
 
 Spécification complète : [docs/V3_COMMUNITY_DISTRIBUTION.md](docs/V3_COMMUNITY_DISTRIBUTION.md). Contrat : `contracts/CommunityLots.sol`.
 
+- **Au lancement : 100 lots pionniers uniquement** (1 %), 10 USDC le lot, 100 000 BILL fixes.
+- **Séries suivantes** (90 payants + 10 gratuits, une série tous les 30 jours) : elles s'ouvrent seulement quand le prix a décollé (x10 du prix de lancement, via `openSeries()`).
+- **Lot payant : 50 USDC pour 100 USDC de BILL au cours du marché** (le double de la mise, jamais plus). La quantité diminue quand le prix monte (rareté). Exemple : BILL à 1 USDC, 50 USDC = 100 BILL.
+- Un lot par wallet. Vesting de chaque lot : blocage 45 jours, puis déblocage linéaire sur 30 jours. Lots invendus conservés dans le contrat.
+- **Liquidité** : 500 000 BILL + 50 USDC au lancement ; 499,5 M BILL en réserve injectés progressivement par `AutoLiquidity` (voir [docs/DEPLOY_V3.md](docs/DEPLOY_V3.md)).
+
 ## Aide directe : site web et vote communautaire
 
 Spécification : [docs/SOLIDARITY_DASHBOARD.md](docs/SOLIDARITY_DASHBOARD.md) (tableau de bord sur Base, espace demandeurs, vote public par identification, distribution toutes les 24 h, limite de vente de 1 % sur les plateformes de trading uniquement).
@@ -33,7 +39,7 @@ Spécification : [docs/SOLIDARITY_DASHBOARD.md](docs/SOLIDARITY_DASHBOARD.md) (t
 
 ## Historique des versions
 
-- `v1/` : à fournir (code V1 non trouvé).
+- V1 : abandonné.
 - [`v2/`](v2/ARCHIVE.md) : archive de TREVIO (TRVO), offre fixe de 21 M, vente à prix fixe.
 - V3 : ce dépôt (BillPay Protocol, BILL).
 
@@ -58,4 +64,6 @@ Spécification : [docs/SOLIDARITY_DASHBOARD.md](docs/SOLIDARITY_DASHBOARD.md) (t
 | 2026-11-09 | Lots refaits : 100 pionniers (1 %, 10 USDC) + 14 séries de 100 (90 payants à 50 % du prix de marché via TWAP, 10 gratuits), une série par 30 jours. Croissance : 48 mois mensuels (`MonthlyVesting`). Paire BILL/USDC. V1 abandonné. 37 tests. |
 | 2026-11-09 | Liquidité de lancement : 500 000 BILL + 50 USDC ; 499,5 M BILL en réserve `AutoLiquidity`, injectés au fil des récoltes de la contribution de 1 %. Lots : seul le pionnier est fixe, les autres livrent exactement x2 au cours TWAP (quantité variable), invendus conservés. 47 tests. |
 | 2026-11-09 | PR #5 fusionnée. Archivage du code V2 (TREVIO) dans `v2/`. V1 en attente. |
+| 2026-11-09 | Prix des lots : pionnier 10 USDC (100 000 BILL fixes) ; lots suivants 50 USDC pour 100 USDC de BILL au cours TWAP (x2). |
+| 2026-11-09 | Au lancement : 100 pionniers uniquement. Les séries à 50 USDC s'ouvrent via `openSeries()` quand le TWAP atteint x10 (0,001 USDC/BILL). 49 tests. |
 | À venir | Phase 0 (#2), V4 programme de participation (#3), anti-sybil (#4), audit. |

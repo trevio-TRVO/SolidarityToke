@@ -15,24 +15,26 @@ interface IPair {
 }
 
 /// @title CommunityLots V3 - 15 % de l'offre distribués en lots (sans admin)
-/// @notice 1 500 lots de 100 000 BILL = 150 000 000 BILL :
-///   - série 0 "pionniers" : 100 lots de valeur 10 USDC (prix fixe 5 USDC = 50 %), ouverts dès le lancement ;
-///   - 14 séries continues, une toutes les 30 jours : 90 lots payants + 10 lots gratuits
-///     (attribués aux 10 sous-wallets du wallet spécial, programme V4).
-/// Prix d'un lot payant = 50 % de la valeur de marché (TWAP de la paire BILL/USDC) : le lot contient
-/// donc 200 % de ce qui est payé. Un seul achat par wallet. Chaque lot : cliff 45 j puis linéaire 30 j.
-/// Aucune fonction owner/admin : tout est immuable.
+/// @notice Réserve de 150 000 000 BILL :
+///   - 100 lots pionniers (1 %) : 10 USDC contre 100 000 BILL fixes, ouverts dès le lancement ;
+///   - séries continues (14 max, une toutes les 30 jours) : 90 lots payants + 10 lots gratuits
+///     (attribués aux 10 sous-wallets du wallet spécial, programme V4). Elles s'ouvrent via
+///     openSeries() seulement quand le cours TWAP BILL/USDC atteint 10 x le prix de lancement.
+/// Lot payant : 50 USDC contre 100 USDC de BILL au cours TWAP (le double de la mise, jamais plus ;
+/// la quantité varie avec le prix). Un seul achat par wallet. Chaque lot : cliff 45 j puis linéaire 30 j.
+/// Les lots invendus restent dans le contrat. Aucune fonction owner/admin : tout est immuable.
 contract CommunityLots {
     uint256 public constant LOT_TOKENS = 100_000e18;
     uint256 public constant PIONEER_LOTS = 100;
-    uint256 public constant PIONEER_PRICE = 5e6; // 5 USDC (valeur 10 USDC au prix de lancement 0,0001)
+    uint256 public constant PIONEER_PRICE = 10e6; // 10 USDC, quantité fixe (100 000 BILL au prix de lancement 0,0001)
     uint256 public constant SERIES_COUNT = 14;
     uint256 public constant PAID_LOTS = 90;
     uint256 public constant FREE_LOTS = 10;
     uint256 public constant SERIES_INTERVAL = 30 days;
-    uint256 public constant LOT_PRICE = 5e6; // 5 USDC, prix d'un lot payant
-    uint256 public constant LOT_VALUE = 10e6; // valeur de marché livrée (x2) : 10 USDC
-    uint256 public constant MAX_LOT_TOKENS = 1_000_000e18; // plafond de sécurité si le prix s'effondre
+    uint256 public constant LOT_PRICE = 50e6; // 50 USDC, prix d'un lot payant
+    uint256 public constant LOT_VALUE = 100e6; // valeur de marché livrée (x2) : 100 USDC
+    uint256 public constant TRIGGER_LOT_TOKENS = 100_000e18; // seuil : 100 USDC de BILL <= 100 000 BILL, soit prix >= 0,001 USDC (x10)
+    uint256 public constant MAX_LOT_TOKENS = 10_000_000e18; // plafond de sécurité si le prix s'effondre
     uint256 public constant CLIFF = 45 days;
     uint256 public constant VESTING = 30 days;
     uint256 public constant UPDATE_INTERVAL = 24 hours;
@@ -42,7 +44,7 @@ contract CommunityLots {
     IERC20 public immutable usdc;
     IPair public immutable pair;        // paire BILL/USDC (Uniswap V2)
     address public immutable treasury;  // reçoit les USDC
-    uint256 public immutable start;
+    uint256 public seriesStart; // 0 tant que le prix n'a pas décollé
     address[FREE_LOTS] public freeWallets;
 
     struct Grant {
@@ -67,6 +69,7 @@ contract CommunityLots {
     uint256 public outstanding;
 
     event Purchased(address indexed buyer, bool pioneer, uint256 price);
+    event SeriesOpened(uint256 time);
     event FreeAllocated(uint256 indexed series);
     event Claimed(address indexed who, uint256 indexed grantId, uint256 amount);
     event OracleUpdated(uint256 time);
@@ -79,7 +82,6 @@ contract CommunityLots {
         pair = _pair;
         treasury = _treasury;
         freeWallets = _freeWallets;
-        start = block.timestamp;
     }
 
     // ---------- oracle TWAP ----------
@@ -118,7 +120,7 @@ contract CommunityLots {
         require(avg > 0, "no price");
     }
 
-    /// @notice Quantité de BILL livrée pour une valeur de marché de 10 USDC (x2 du prix payé).
+    /// @notice Quantité de BILL livrée pour une valeur de marché de 100 USDC (x2 du prix payé).
     /// Le premier lot (pionnier) est fixe ; ensuite la quantité suit le prix : jamais plus que x2.
     function lotTokens() public view returns (uint256 t) {
         t = (LOT_VALUE << 112) / _twap();
@@ -127,9 +129,18 @@ contract CommunityLots {
 
     // ---------- séries ----------
 
-    /// @notice Nombre de séries continues ouvertes (1 dès le lancement, puis +1 tous les 30 jours).
+    /// @notice Lance les séries continues, une seule fois, dès que le cours TWAP a décollé (x10 du prix de lancement).
+    function openSeries() external {
+        require(seriesStart == 0, "already open");
+        require(lotTokens() <= TRIGGER_LOT_TOKENS, "price too low");
+        seriesStart = block.timestamp;
+        emit SeriesOpened(block.timestamp);
+    }
+
+    /// @notice Séries ouvertes : 0 avant le déclenchement, 1 au déclenchement, puis +1 tous les 30 jours.
     function openedSeries() public view returns (uint256 n) {
-        n = (block.timestamp - start) / SERIES_INTERVAL + 1;
+        if (seriesStart == 0) return 0;
+        n = (block.timestamp - seriesStart) / SERIES_INTERVAL + 1;
         if (n > SERIES_COUNT) n = SERIES_COUNT;
     }
 
@@ -139,7 +150,7 @@ contract CommunityLots {
 
     // ---------- achats ----------
 
-    /// @notice Lot pionnier : prix fixe de 5 USDC pour 100 000 BILL (valeur 10 USDC).
+    /// @notice Lot pionnier : 10 USDC pour 100 000 BILL (quantité fixe).
     function buyPioneer() external {
         require(!hasBought[msg.sender], "already bought");
         require(pioneerSold < PIONEER_LOTS, "pioneers sold out");
@@ -148,7 +159,7 @@ contract CommunityLots {
         _sell(PIONEER_PRICE, true, LOT_TOKENS);
     }
 
-    /// @notice Lot de série continue : 5 USDC contre 10 USDC de BILL au cours TWAP (x2).
+    /// @notice Lot de série continue : 50 USDC contre 100 USDC de BILL au cours TWAP (x2).
     function buy() external {
         require(!hasBought[msg.sender], "already bought");
         require(paidSold < SERIES_COUNT * PAID_LOTS, "sold out");
