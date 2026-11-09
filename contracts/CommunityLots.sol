@@ -25,14 +25,14 @@ interface IPair {
 contract CommunityLots {
     uint256 public constant LOT_TOKENS = 100_000e18;
     uint256 public constant PIONEER_LOTS = 100;
-    uint256 public constant PIONEER_PRICE = 5e6; // 5 USDC (valeur 10 USDC au prix de lancement 0,0001)
+    uint256 public constant PIONEER_PRICE = 10e6; // 10 USDC, quantité fixe (100 000 BILL au prix de lancement 0,0001)
     uint256 public constant SERIES_COUNT = 14;
     uint256 public constant PAID_LOTS = 90;
     uint256 public constant FREE_LOTS = 10;
     uint256 public constant SERIES_INTERVAL = 30 days;
-    uint256 public constant LOT_PRICE = 5e6; // 5 USDC, prix d'un lot payant
-    uint256 public constant LOT_VALUE = 10e6; // valeur de marché livrée (x2) : 10 USDC
-    uint256 public constant MAX_LOT_TOKENS = 1_000_000e18; // plafond de sécurité si le prix s'effondre
+    uint256 public constant LOT_PRICE = 50e6; // 50 USDC, prix d'un lot payant
+    uint256 public constant LOT_VALUE = 100e6; // valeur de marché livrée (x2) : 100 USDC
+    uint256 public constant MAX_LOT_TOKENS = 10_000_000e18; // plafond de sécurité si le prix s'effondre
     uint256 public constant CLIFF = 45 days;
     uint256 public constant VESTING = 30 days;
     uint256 public constant UPDATE_INTERVAL = 24 hours;
@@ -139,7 +139,7 @@ contract CommunityLots {
 
     // ---------- achats ----------
 
-    /// @notice Lot pionnier : prix fixe de 5 USDC pour 100 000 BILL (valeur 10 USDC).
+    /// @notice Lot pionnier : 10 USDC pour 100 000 BILL (quantité fixe).
     function buyPioneer() external {
         require(!hasBought[msg.sender], "already bought");
         require(pioneerSold < PIONEER_LOTS, "pioneers sold out");
@@ -148,7 +148,7 @@ contract CommunityLots {
         _sell(PIONEER_PRICE, true, LOT_TOKENS);
     }
 
-    /// @notice Lot de série continue : 5 USDC contre 10 USDC de BILL au cours TWAP (x2).
+    /// @notice Lot de série continue : 50 USDC contre 100 USDC de BILL au cours TWAP (x2).
     function buy() external {
         require(!hasBought[msg.sender], "already bought");
         require(paidSold < SERIES_COUNT * PAID_LOTS, "sold out");

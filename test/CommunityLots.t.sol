@@ -69,7 +69,7 @@ contract CommunityLotsTest {
     function testPioneerLotFixedPriceAndSupply() public {
         address b = _buyer(1);
         vm.prank(b); lots.buyPioneer();
-        require(usdc.balanceOf(treasury) == 5e6, "5 USDC");
+        require(usdc.balanceOf(treasury) == 10e6, "10 USDC");
         (uint128 total,,) = lots.grants(b, 0);
         require(total == LOT, "100k BILL");
     }
@@ -85,12 +85,12 @@ contract CommunityLotsTest {
 
     function testPaidLotDeliversTwiceThePrice() public {
         _oracle();
-        // marché : 0,0001 USDC/BILL -> 5 USDC payés = 10 USDC de BILL = environ 100 000 BILL
+        // marché : 0,0001 USDC/BILL -> 50 USDC payés = 100 USDC de BILL = environ 1 000 000 BILL
         address b = _buyer(1);
         vm.prank(b); lots.buy();
-        require(usdc.balanceOf(treasury) == 5e6, "paid");
+        require(usdc.balanceOf(treasury) == 50e6, "paid");
         (uint128 total,,) = lots.grants(b, 0);
-        require(total >= 99_900e18 && total <= 100_100e18, "about 100k");
+        require(total >= 999_000e18 && total <= 1_001_000e18, "about 1M");
     }
 
     function testLotQuantityShrinksWhenPriceRises() public {
