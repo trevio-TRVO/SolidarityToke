@@ -15,13 +15,14 @@ interface IPair {
 }
 
 /// @title CommunityLots V3 - 15 % de l'offre distribués en lots (sans admin)
-/// @notice 1 500 lots de 100 000 BILL = 150 000 000 BILL :
-///   - série 0 "pionniers" : 100 lots de valeur 10 USDC (prix fixe 5 USDC = 50 %), ouverts dès le lancement ;
-///   - 14 séries continues, une toutes les 30 jours : 90 lots payants + 10 lots gratuits
-///     (attribués aux 10 sous-wallets du wallet spécial, programme V4).
-/// Prix d'un lot payant = 50 % de la valeur de marché (TWAP de la paire BILL/USDC) : le lot contient
-/// donc 200 % de ce qui est payé. Un seul achat par wallet. Chaque lot : cliff 45 j puis linéaire 30 j.
-/// Aucune fonction owner/admin : tout est immuable.
+/// @notice Réserve de 150 000 000 BILL :
+///   - 100 lots pionniers (1 %) : 10 USDC contre 100 000 BILL fixes, ouverts dès le lancement ;
+///   - séries continues (14 max, une toutes les 30 jours) : 90 lots payants + 10 lots gratuits
+///     (attribués aux 10 sous-wallets du wallet spécial, programme V4). Elles s'ouvrent via
+///     openSeries() seulement quand le cours TWAP BILL/USDC atteint 10 x le prix de lancement.
+/// Lot payant : 50 USDC contre 100 USDC de BILL au cours TWAP (le double de la mise, jamais plus ;
+/// la quantité varie avec le prix). Un seul achat par wallet. Chaque lot : cliff 45 j puis linéaire 30 j.
+/// Les lots invendus restent dans le contrat. Aucune fonction owner/admin : tout est immuable.
 contract CommunityLots {
     uint256 public constant LOT_TOKENS = 100_000e18;
     uint256 public constant PIONEER_LOTS = 100;
@@ -119,7 +120,7 @@ contract CommunityLots {
         require(avg > 0, "no price");
     }
 
-    /// @notice Quantité de BILL livrée pour une valeur de marché de 10 USDC (x2 du prix payé).
+    /// @notice Quantité de BILL livrée pour une valeur de marché de 100 USDC (x2 du prix payé).
     /// Le premier lot (pionnier) est fixe ; ensuite la quantité suit le prix : jamais plus que x2.
     function lotTokens() public view returns (uint256 t) {
         t = (LOT_VALUE << 112) / _twap();

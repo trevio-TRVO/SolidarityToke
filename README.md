@@ -21,6 +21,12 @@ Vocabulaire : on parle de **contribution solidaire** ou de **prélèvement répa
 
 Spécification complète : [docs/V3_COMMUNITY_DISTRIBUTION.md](docs/V3_COMMUNITY_DISTRIBUTION.md). Contrat : `contracts/CommunityLots.sol`.
 
+- **Au lancement : 100 lots pionniers uniquement** (1 %), 10 USDC le lot, 100 000 BILL fixes.
+- **Séries suivantes** (90 payants + 10 gratuits, une série tous les 30 jours) : elles s'ouvrent seulement quand le prix a décollé (x10 du prix de lancement, via `openSeries()`).
+- **Lot payant : 50 USDC pour 100 USDC de BILL au cours du marché** (le double de la mise, jamais plus). La quantité diminue quand le prix monte (rareté). Exemple : BILL à 1 USDC, 50 USDC = 100 BILL.
+- Un lot par wallet. Vesting de chaque lot : blocage 45 jours, puis déblocage linéaire sur 30 jours. Lots invendus conservés dans le contrat.
+- **Liquidité** : 500 000 BILL + 50 USDC au lancement ; 499,5 M BILL en réserve injectés progressivement par `AutoLiquidity` (voir [docs/DEPLOY_V3.md](docs/DEPLOY_V3.md)).
+
 ## Aide directe : site web et vote communautaire
 
 Spécification : [docs/SOLIDARITY_DASHBOARD.md](docs/SOLIDARITY_DASHBOARD.md) (tableau de bord sur Base, espace demandeurs, vote public par identification, distribution toutes les 24 h, limite de vente de 1 % sur les plateformes de trading uniquement).
@@ -33,7 +39,7 @@ Spécification : [docs/SOLIDARITY_DASHBOARD.md](docs/SOLIDARITY_DASHBOARD.md) (t
 
 ## Historique des versions
 
-- `v1/` : à fournir (code V1 non trouvé).
+- V1 : abandonné.
 - [`v2/`](v2/ARCHIVE.md) : archive de TREVIO (TRVO), offre fixe de 21 M, vente à prix fixe.
 - V3 : ce dépôt (BillPay Protocol, BILL).
 

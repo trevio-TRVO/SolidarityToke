@@ -6,7 +6,7 @@ Contrat : `contracts/CommunityLots.sol` (sans owner, paramètres immuables).
 | Phase | Lots | Règle |
 |---|---|---|
 | Pionniers (1 %) | 100 | Prix 10 USDC par lot, quantité fixe de 100 000 BILL (valeur 10 USDC au prix de lancement 0,0001 USDC/BILL). Ouverts dès le lancement. |
-| Séries continues | 14 séries de 100 | 90 payants + 10 gratuits. Une série s'ouvre toutes les 30 jours, jusqu'à épuisement de la réserve (14 séries, environ 14 mois). |
+| Séries continues | 14 séries de 100 | 90 payants + 10 gratuits. Elles s'ouvrent quand le prix décolle (voir ci-dessous), puis une nouvelle série tous les 30 jours, jusqu'à épuisement de la réserve (14 séries maximum). |
 
 Total : (100 + 14 × 100) × 100 000 = 150 000 000 BILL.
 
