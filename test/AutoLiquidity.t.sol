@@ -5,7 +5,6 @@ import {AutoLiquidity, IERC20AL, IRouterV2, IPairV2} from "../contracts/AutoLiqu
 
 interface Vm {
     function warp(uint256) external;
-    function deal(address, uint256) external;
     function expectRevert(bytes calldata) external;
 }
 
@@ -14,6 +13,7 @@ contract MToken {
     mapping(address => mapping(address => uint256)) public allowance;
     function mint(address to, uint256 a) external { balanceOf[to] += a; }
     function approve(address s, uint256 a) external returns (bool) { allowance[msg.sender][s] = a; return true; }
+    function transfer(address to, uint256 a) external returns (bool) { balanceOf[msg.sender] -= a; balanceOf[to] += a; return true; }
     function transferFrom(address f, address to, uint256 a) external returns (bool) {
         allowance[f][msg.sender] -= a; balanceOf[f] -= a; balanceOf[to] += a; return true;
     }
@@ -22,42 +22,47 @@ contract MToken {
 contract MPair {
     address public token0;
     constructor(address t) { token0 = t; }
-    function getReserves() external pure returns (uint112, uint112, uint32) { return (1_000_000e18, 100e18, 0); }
+    function getReserves() external pure returns (uint112, uint112, uint32) { return (1_000_000e18, 100e6, 0); }
 }
 
 contract MRouter {
-    MToken token;
+    MToken token; MToken usdc;
     uint256 public lastMin;
     address public lastLpTo;
-    constructor(MToken t) { token = t; }
-    receive() external payable {}
-    function WETH() external pure returns (address) { return address(0xE7); }
-    function swapExactTokensForETHSupportingFeeOnTransferTokens(uint256 a, uint256 minOut, address[] calldata, address to, uint256)
+    constructor(MToken t, MToken u) { token = t; usdc = u; }
+    function swapExactTokensForTokensSupportingFeeOnTransferTokens(uint256 a, uint256 minOut, address[] calldata, address to, uint256)
         external
     {
         token.transferFrom(msg.sender, address(this), a);
         lastMin = minOut;
-        (bool ok,) = to.call{value: minOut}("");
-        require(ok);
+        usdc.transfer(to, minOut);
     }
-    function addLiquidityETH(address, uint256 amt, uint256, uint256, address to, uint256)
-        external payable returns (uint256, uint256, uint256)
+    function addLiquidity(address, address, uint256 a, uint256 b, uint256, uint256, address to, uint256)
+        external returns (uint256, uint256, uint256)
     {
-        token.transferFrom(msg.sender, address(this), amt);
+        token.transferFrom(msg.sender, address(this), a);
+        usdc.transferFrom(msg.sender, address(this), b);
         lastLpTo = to;
-        return (amt, msg.value, 1);
+        return (a, b, 1);
     }
 }
 
 contract AutoLiquidityTest {
     Vm constant vm = Vm(address(uint160(uint256(keccak256("hevm cheat code")))));
-    MToken token; MRouter router; AutoLiquidity al;
+    MToken token; MToken usdc; MRouter router; AutoLiquidity al;
+
+    function _new() internal returns (AutoLiquidity) {
+        return new AutoLiquidity(
+            IERC20AL(address(token)), IERC20AL(address(usdc)), IRouterV2(address(router)),
+            IPairV2(address(new MPair(address(token))))
+        );
+    }
 
     function setUp() public {
         vm.warp(10 days);
-        token = new MToken(); router = new MRouter(token);
-        vm.deal(address(router), 10 ether);
-        al = new AutoLiquidity(IERC20AL(address(token)), IRouterV2(address(router)), IPairV2(address(new MPair(address(token)))));
+        token = new MToken(); usdc = new MToken(); router = new MRouter(token, usdc);
+        usdc.mint(address(router), 1_000e6);
+        al = _new();
         token.mint(address(al), 50_000e18);
     }
 
@@ -79,7 +84,7 @@ contract AutoLiquidityTest {
     }
 
     function testNothingToAdd() public {
-        AutoLiquidity empty = new AutoLiquidity(IERC20AL(address(token)), IRouterV2(address(router)), IPairV2(address(new MPair(address(token)))));
+        AutoLiquidity empty = _new();
         vm.expectRevert("nothing to add");
         empty.addLiquidity();
     }

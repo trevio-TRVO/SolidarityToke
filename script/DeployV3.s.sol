@@ -2,24 +2,25 @@
 pragma solidity ^0.8.20;
 
 import {Script, console2} from "forge-std/Script.sol";
+import {MonthlyVesting} from "../contracts/MonthlyVesting.sol";
 import {VestingWallet} from "@openzeppelin/contracts/finance/VestingWallet.sol";
 import {BillPayProtocol} from "../contracts/BillPayProtocol.sol";
-import {CommunityLots, IERC20} from "../contracts/CommunityLots.sol";
+import {CommunityLots, IERC20, IPair} from "../contracts/CommunityLots.sol";
 import {AutoLiquidity, IERC20AL, IRouterV2, IPairV2} from "../contracts/AutoLiquidity.sol";
 import {SolidarityWallet, IERC20Min, ICommunityLots} from "../contracts/SolidarityWallet.sol";
 
 /// Répartition de 1 000 000 000 BILL :
-///   50 % liquidité initiale (LIQUIDITY_SEEDER) · 20 % fondateur (VestingWallet)
-///   15 % CommunityLots · 15 % croissance et marketing (VestingWallet)
+///   50 % liquidité initiale BILL/USDC (LIQUIDITY_SEEDER) · 20 % fondateur (VestingWallet)
+///   15 % CommunityLots (dont 1 % pionniers) · 15 % croissance et marketing (MonthlyVesting, 48 mois)
 /// Les adresses des contrats sont prédites par nonce car elles se référencent mutuellement.
-/// Variables : FOUNDER, LIQUIDITY_SEEDER, OPERATIONS_WALLET, ROUTER, GROWTH_BENEFICIARY, PAIR,
-/// USDC, TREASURY, COUNCIL (10 adresses, virgules), FREE_WALLETS (10 adresses), PRICES, TOKENS_PER_LOT (listes).
+/// Variables : FOUNDER, LIQUIDITY_SEEDER, OPERATIONS_WALLET, GROWTH_BENEFICIARY, PAIR,
+/// USDC, TREASURY, ROUTER, COUNCIL (10 adresses, virgules), FREE_WALLETS (10 adresses).
 /// La clé privée se passe via --account / --ledger, jamais dans un fichier.
 contract DeployV3 is Script {
     uint256 public constant SUPPLY = 1_000_000_000e18;
     uint256 public constant FOUNDER_CLIFF = 90 days; // validé : revenu rapide, V2 = 12 mois
     uint256 public constant FOUNDER_DURATION = 3 * 365 days; // V2 = 48 mois
-    uint256 public constant GROWTH_DURATION = 5 * 365 days; // même modèle que la trésorerie du V2
+    uint256 public constant GROWTH_MONTHS = 48; // déblocage par paliers mensuels
 
     struct Deployed {
         address founderVesting;
@@ -43,7 +44,7 @@ contract DeployV3 is Script {
             new VestingWallet(vm.envAddress("FOUNDER"), uint64(block.timestamp + FOUNDER_CLIFF), uint64(FOUNDER_DURATION))
         );
         d.growthVesting = address(
-            new VestingWallet(vm.envAddress("GROWTH_BENEFICIARY"), uint64(block.timestamp), uint64(GROWTH_DURATION))
+            new MonthlyVesting(vm.envAddress("GROWTH_BENEFICIARY"), block.timestamp, GROWTH_MONTHS)
         );
 
         address[10] memory council = _toTen(vm.envAddress("COUNCIL", ","));
@@ -58,9 +59,8 @@ contract DeployV3 is Script {
             new CommunityLots(
                 IERC20(predictedToken),
                 IERC20(vm.envAddress("USDC")),
+                IPair(vm.envAddress("PAIR")),
                 vm.envAddress("TREASURY"),
-                vm.envUint("PRICES", ","),
-                vm.envUint("TOKENS_PER_LOT", ","),
                 _toTen(vm.envAddress("FREE_WALLETS", ","))
             )
         );
@@ -68,7 +68,10 @@ contract DeployV3 is Script {
 
         d.autoLiquidity = address(
             new AutoLiquidity(
-                IERC20AL(predictedToken), IRouterV2(vm.envAddress("ROUTER")), IPairV2(vm.envAddress("PAIR"))
+                IERC20AL(predictedToken),
+                IERC20AL(vm.envAddress("USDC")),
+                IRouterV2(vm.envAddress("ROUTER")),
+                IPairV2(vm.envAddress("PAIR"))
             )
         );
         require(d.autoLiquidity == predictedAutoLiq, "nonce: autoLiquidity");

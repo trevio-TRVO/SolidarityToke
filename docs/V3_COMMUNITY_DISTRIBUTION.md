@@ -1,16 +1,26 @@
-# V3 – Distribution communautaire (15 % de l'offre)
+# V3 : distribution communautaire (15 % de l'offre = 150 000 000 BILL)
 
-Contrat : `contracts/CommunityLots.sol` (Solidity ^0.8.20, sans owner, paramètres immuables).
+Contrat : `contracts/CommunityLots.sol` (sans owner, paramètres immuables).
 
-## Règles
-- **Phase 0** : 1 % de l'offre en 100 lots de 10 USDC (à déployer via le même mécanisme / config dédiée – à définir).
-- **Phase 1 (continue)** : séries de 100 lots = 90 payants + 10 gratuits.
-- Chaque lot = 200 % de sa valeur (ex. lot à 100 $ → 200 USDC de tokens).
-- Prix : lot 1 = 50 $, lot 2 = 100 $. Hausse **max ×2** entre séries (imposé dans le constructeur).
-- Quantité de tokens par lot **non croissante** → rareté.
-- **1 achat par wallet**. Vesting par lot : cliff 45 j à partir de l'achat, puis linéaire 30 j. Aucun claim anticipé.
-- Lots gratuits : 10 sous-wallets du wallet spécial ; attribution permissionless via `allocateFree(série)`. Programme/campagne (3 admins aléatoires par lot) = **V4**.
-- Pool plafonné : le contrat doit être préfinancé ; `outstanding <= balance` est vérifié à chaque attribution.
+## Structure : 1 500 lots de 100 000 BILL
+| Phase | Lots | Règle |
+|---|---|---|
+| Pionniers (1 %) | 100 | Valeur 10 USDC par lot au prix de lancement (0,0001 USDC/BILL), vendus 5 USDC (50 %). Ouverts dès le lancement. |
+| Séries continues | 14 séries de 100 | 90 payants + 10 gratuits. Une série s'ouvre toutes les 30 jours, jusqu'à épuisement de la réserve (14 séries, environ 14 mois). |
 
+Total : (100 + 14 × 100) × 100 000 = 150 000 000 BILL.
 
+## Prix
+- Lot payant = **50 % de la valeur de marché** : le prix suit le marché (TWAP de la paire BILL/USDC), donc l'acheteur reçoit 200 % de ce qu'il paie. Le prix n'est plus doublé à chaque vente : il suit le marché.
+- Oracle TWAP : point d'observation public `update()` (au plus toutes les 24 h), fenêtre minimale de 1 h. Il faut appeler `update()` après l'ajout de liquidité, puis attendre 1 h avant le premier achat de série continue.
+- Un lot par wallet.
 
+## Lots gratuits
+- 10 lots par série vont aux 10 sous-wallets du wallet spécial (programme de participation, géré par le V4 : campagne, 3 administrateurs tirés au sort par lot). `allocateFree(série)` est public et ne peut être appelé qu'une fois par série.
+
+## Vesting par lot
+- Cliff de 45 jours à partir de l'achat, puis déblocage linéaire sur 30 jours. Aucun claim anticipé.
+
+## Garde-fous
+- Pool plafonné : le contrat doit être préfinancé de 150 000 000 BILL ; `outstanding <= solde` est vérifié à chaque attribution.
+- Les achats ne sont possibles que si une observation TWAP existe.

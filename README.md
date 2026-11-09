@@ -49,4 +49,5 @@ Spécification : [docs/SOLIDARITY_DASHBOARD.md](docs/SOLIDARITY_DASHBOARD.md) (t
 | 2026-11-09 | Répartition fixée : 50 % liquidité, 20 % fondateur (vesting), 15 % lots communautaires, 15 % croissance (vesting). Script de déploiement unique avec adresses prédites, simulé sans erreur. |
 | 2026-11-09 | Protection de lancement 7 jours (0,1 % par vente, 0,2 % par wallet et par jour), contrat `AutoLiquidity`, pool V2 uniquement, vesting fondateur proposé 90 j + 36 mois. 30 tests. |
 | 2026-11-09 | Vesting fondateur validé : 90 jours puis 36 mois linéaires. |
+| 2026-11-09 | Lots refaits : 100 pionniers (1 %, 10 USDC) + 14 séries de 100 (90 payants à 50 % du prix de marché via TWAP, 10 gratuits), une série par 30 jours. Croissance : 48 mois mensuels (`MonthlyVesting`). Paire BILL/USDC. V1 abandonné. 37 tests. |
 | À venir | Phase 0 (#2), V4 programme de participation (#3), anti-sybil (#4), audit. |

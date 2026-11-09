@@ -7,110 +7,180 @@ interface IERC20 {
     function balanceOf(address who) external view returns (uint256);
 }
 
-/// @title CommunityLots V3 - distribution communautaire par lots (sans admin)
-/// @notice Séries de 100 lots : 90 payants (1 achat par wallet), 10 gratuits
-///         répartis vers 10 sous-wallets. Chaque lot : cliff 45j puis linéaire 30j.
-///         Tous les paramètres sont immuables : aucune fonction owner/admin.
+interface IPair {
+    function token0() external view returns (address);
+    function getReserves() external view returns (uint112, uint112, uint32);
+    function price0CumulativeLast() external view returns (uint256);
+    function price1CumulativeLast() external view returns (uint256);
+}
+
+/// @title CommunityLots V3 - 15 % de l'offre distribués en lots (sans admin)
+/// @notice 1 500 lots de 100 000 BILL = 150 000 000 BILL :
+///   - série 0 "pionniers" : 100 lots de valeur 10 USDC (prix fixe 5 USDC = 50 %), ouverts dès le lancement ;
+///   - 14 séries continues, une toutes les 30 jours : 90 lots payants + 10 lots gratuits
+///     (attribués aux 10 sous-wallets du wallet spécial, programme V4).
+/// Prix d'un lot payant = 50 % de la valeur de marché (TWAP de la paire BILL/USDC) : le lot contient
+/// donc 200 % de ce qui est payé. Un seul achat par wallet. Chaque lot : cliff 45 j puis linéaire 30 j.
+/// Aucune fonction owner/admin : tout est immuable.
 contract CommunityLots {
+    uint256 public constant LOT_TOKENS = 100_000e18;
+    uint256 public constant PIONEER_LOTS = 100;
+    uint256 public constant PIONEER_PRICE = 5e6; // 5 USDC (valeur 10 USDC au prix de lancement 0,0001)
+    uint256 public constant SERIES_COUNT = 14;
     uint256 public constant PAID_LOTS = 90;
     uint256 public constant FREE_LOTS = 10;
+    uint256 public constant SERIES_INTERVAL = 30 days;
+    uint256 public constant DISCOUNT_BPS = 5000; // prix = 50 % de la valeur de marché
     uint256 public constant CLIFF = 45 days;
     uint256 public constant VESTING = 30 days;
+    uint256 public constant UPDATE_INTERVAL = 24 hours;
+    uint256 public constant MIN_TWAP_WINDOW = 1 hours;
 
-    IERC20 public immutable token;      // token du projet
-    IERC20 public immutable usdc;       // monnaie de paiement
+    IERC20 public immutable token;
+    IERC20 public immutable usdc;
+    IPair public immutable pair;        // paire BILL/USDC (Uniswap V2)
     address public immutable treasury;  // reçoit les USDC
-
-    uint256 public immutable seriesCount;
-    uint256[] public pricePerSeries;    // prix USDC (6 déc.) d'un lot, <= x2 de la série précédente
-    uint256[] public tokensPerSeries;   // tokens par lot : décroît => rareté
-    address[FREE_LOTS] public freeWallets; // 10 sous-wallets du wallet spécial (programme V4)
+    uint256 public immutable start;
+    address[FREE_LOTS] public freeWallets;
 
     struct Grant {
         uint128 total;
         uint128 claimed;
-        uint64 start; // début du cliff
+        uint64 start;
     }
+
+    struct Obs {
+        uint32 t;
+        uint256 cum;
+    }
+
+    Obs public prev;
+    Obs public cur;
 
     mapping(address => Grant[]) public grants;
-    uint256 public outstanding; // tokens attribués non encore réclamés
     mapping(address => bool) public hasBought;
-    mapping(uint256 => uint256) public paidSold;      // série => lots payants vendus
-    mapping(uint256 => bool) public freeAllocated;    // série => lots gratuits attribués
+    uint256 public pioneerSold;
+    uint256 public paidSold;
+    mapping(uint256 => bool) public freeAllocated;
+    uint256 public outstanding;
 
-    event Purchased(address indexed buyer, uint256 indexed series, uint256 price, uint256 tokens);
-    event FreeAllocated(uint256 indexed series, uint256 tokensPerLot);
+    event Purchased(address indexed buyer, bool pioneer, uint256 price);
+    event FreeAllocated(uint256 indexed series);
     event Claimed(address indexed who, uint256 indexed grantId, uint256 amount);
+    event OracleUpdated(uint256 time);
 
-    constructor(
-        IERC20 _token,
-        IERC20 _usdc,
-        address _treasury,
-        uint256[] memory _prices,
-        uint256[] memory _tokens,
-        address[FREE_LOTS] memory _freeWallets
-    ) {
-        require(_prices.length > 0 && _prices.length == _tokens.length, "bad schedule");
-        for (uint256 i; i < _prices.length; i++) {
-            require(_prices[i] > 0 && _tokens[i] > 0, "zero");
-            if (i > 0) {
-                require(_prices[i] <= _prices[i - 1] * 2, "price > x2");
-                require(_prices[i] >= _prices[i - 1], "price decreasing");
-                require(_tokens[i] <= _tokens[i - 1], "quantity must not grow");
-            }
-        }
-        for (uint256 i; i < FREE_LOTS; i++) require(_freeWallets[i] != address(0), "zero wallet");
+    constructor(IERC20 _token, IERC20 _usdc, IPair _pair, address _treasury, address[FREE_LOTS] memory _freeWallets) {
         require(_treasury != address(0), "zero treasury");
+        for (uint256 i; i < FREE_LOTS; i++) require(_freeWallets[i] != address(0), "zero wallet");
         token = _token;
         usdc = _usdc;
+        pair = _pair;
         treasury = _treasury;
-        pricePerSeries = _prices;
-        tokensPerSeries = _tokens;
-        seriesCount = _prices.length;
         freeWallets = _freeWallets;
+        start = block.timestamp;
     }
 
-    /// @notice Série active = première non épuisée (lots payants).
-    function currentSeries() public view returns (uint256) {
-        uint256 s;
-        while (s < seriesCount && paidSold[s] >= PAID_LOTS) s++;
-        return s;
+    // ---------- oracle TWAP ----------
+
+    function _currentCumulative() internal view returns (uint256 cum) {
+        (uint112 r0, uint112 r1, uint32 ts) = pair.getReserves();
+        bool billIs0 = pair.token0() == address(token);
+        (uint256 rBill, uint256 rUsdc) = billIs0 ? (r0, r1) : (r1, r0);
+        require(rBill > 0 && rUsdc > 0, "no liquidity");
+        cum = billIs0 ? pair.price0CumulativeLast() : pair.price1CumulativeLast();
+        uint32 now32 = uint32(block.timestamp);
+        if (ts != now32) {
+            unchecked {
+                cum += ((rUsdc << 112) / rBill) * uint32(now32 - ts);
+            }
+        }
     }
 
-    /// @notice Achat d'un lot : un seul par wallet, vesting démarre à l'achat.
+    /// @notice Enregistre un point d'observation (public, au plus toutes les 24 h).
+    function update() external {
+        require(cur.t == 0 || block.timestamp >= uint256(cur.t) + UPDATE_INTERVAL, "too soon");
+        prev = cur;
+        cur = Obs(uint32(block.timestamp), _currentCumulative());
+        emit OracleUpdated(block.timestamp);
+    }
+
+    /// @notice USDC (6 déc.) correspondant à la valeur de marché d'un lot (TWAP).
+    function lotMarketValue() public view returns (uint256) {
+        Obs memory o = cur;
+        if (o.t == 0 || block.timestamp < uint256(o.t) + MIN_TWAP_WINDOW) o = prev;
+        require(o.t != 0, "no oracle");
+        uint256 dt;
+        uint256 avg;
+        unchecked {
+            dt = uint32(block.timestamp) - o.t;
+            avg = (_currentCumulative() - o.cum) / dt;
+        }
+        return (avg * LOT_TOKENS) >> 112;
+    }
+
+    function lotPrice() public view returns (uint256) {
+        uint256 p = (lotMarketValue() * DISCOUNT_BPS) / 10_000;
+        return p == 0 ? 1 : p;
+    }
+
+    // ---------- séries ----------
+
+    /// @notice Nombre de séries continues ouvertes (1 dès le lancement, puis +1 tous les 30 jours).
+    function openedSeries() public view returns (uint256 n) {
+        n = (block.timestamp - start) / SERIES_INTERVAL + 1;
+        if (n > SERIES_COUNT) n = SERIES_COUNT;
+    }
+
+    function availablePaidLots() public view returns (uint256) {
+        return openedSeries() * PAID_LOTS - paidSold;
+    }
+
+    // ---------- achats ----------
+
+    /// @notice Lot pionnier : prix fixe de 5 USDC pour 100 000 BILL (valeur 10 USDC).
+    function buyPioneer() external {
+        require(!hasBought[msg.sender], "already bought");
+        require(pioneerSold < PIONEER_LOTS, "pioneers sold out");
+        hasBought[msg.sender] = true;
+        pioneerSold++;
+        _sell(PIONEER_PRICE, true);
+    }
+
+    /// @notice Lot de série continue : 50 % de la valeur de marché (TWAP).
     function buy() external {
         require(!hasBought[msg.sender], "already bought");
-        uint256 s = currentSeries();
-        require(s < seriesCount, "sold out");
+        require(paidSold < SERIES_COUNT * PAID_LOTS, "sold out");
+        require(availablePaidLots() > 0, "next series not open");
         hasBought[msg.sender] = true;
-        paidSold[s]++;
-        uint256 tokens = tokensPerSeries[s];
-        uint256 price = pricePerSeries[s];
-
-        _commit(tokens);
-        require(usdc.transferFrom(msg.sender, treasury, price), "payment failed");
-        grants[msg.sender].push(Grant(uint128(tokens), 0, uint64(block.timestamp)));
-        emit Purchased(msg.sender, s, price, tokens);
+        paidSold++;
+        _sell(lotPrice(), false);
     }
 
-    /// @notice Attribue les 10 lots gratuits d'une série aux sous-wallets (permissionless, une fois).
-    ///         Possible dès que la série est ouverte (atteinte ou dépassée).
-    function allocateFree(uint256 s) external {
-        require(s < seriesCount && s <= currentSeries(), "series not open");
-        require(!freeAllocated[s], "done");
-        freeAllocated[s] = true;
-        uint256 tokens = tokensPerSeries[s];
-        _commit(tokens * FREE_LOTS);
+    function _sell(uint256 price, bool pioneer) internal {
+        _commit(LOT_TOKENS);
+        require(usdc.transferFrom(msg.sender, treasury, price), "payment failed");
+        grants[msg.sender].push(Grant(uint128(LOT_TOKENS), 0, uint64(block.timestamp)));
+        emit Purchased(msg.sender, pioneer, price);
+    }
+
+    /// @notice Attribue les 10 lots gratuits d'une série (1..14) aux sous-wallets, une seule fois.
+    function allocateFree(uint256 series) external {
+        require(series >= 1 && series <= openedSeries(), "series not open");
+        require(!freeAllocated[series], "done");
+        freeAllocated[series] = true;
+        _commit(LOT_TOKENS * FREE_LOTS);
         for (uint256 i; i < FREE_LOTS; i++) {
-            grants[freeWallets[i]].push(Grant(uint128(tokens), 0, uint64(block.timestamp)));
+            grants[freeWallets[i]].push(Grant(uint128(LOT_TOKENS), 0, uint64(block.timestamp)));
         }
-        emit FreeAllocated(s, tokens);
+        emit FreeAllocated(series);
     }
 
     function _commit(uint256 amount) internal {
         outstanding += amount;
         require(token.balanceOf(address(this)) >= outstanding, "pool underfunded");
     }
+
+    // ---------- vesting ----------
 
     function vested(address who, uint256 id) public view returns (uint256) {
         Grant memory g = grants[who][id];
