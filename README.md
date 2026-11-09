@@ -1,3 +1,5 @@
+[Français](README.md) | [English](README.en.md) | [Русский](README.ru.md)
+
 # BillPay Protocol (BILL) V3
 
 Jeton déflationniste sur Base, sans admin : aucune modification possible après déploiement.
