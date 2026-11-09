@@ -31,6 +31,12 @@ Spécification : [docs/SOLIDARITY_DASHBOARD.md](docs/SOLIDARITY_DASHBOARD.md) (t
 - [docs/SITE_REQUIREMENTS.md](docs/SITE_REQUIREMENTS.md) : besoin du site.
 - `site/index.html` : maquette statique.
 
+## Historique des versions
+
+- `v1/` : à fournir (code V1 non trouvé).
+- [`v2/`](v2/ARCHIVE.md) : archive de TREVIO (TRVO), offre fixe de 21 M, vente à prix fixe.
+- V3 : ce dépôt (BillPay Protocol, BILL).
+
 ## Journal de bord
 
 | Date | Entrée |
@@ -51,4 +57,5 @@ Spécification : [docs/SOLIDARITY_DASHBOARD.md](docs/SOLIDARITY_DASHBOARD.md) (t
 | 2026-11-09 | Vesting fondateur validé : 90 jours puis 36 mois linéaires. |
 | 2026-11-09 | Lots refaits : 100 pionniers (1 %, 10 USDC) + 14 séries de 100 (90 payants à 50 % du prix de marché via TWAP, 10 gratuits), une série par 30 jours. Croissance : 48 mois mensuels (`MonthlyVesting`). Paire BILL/USDC. V1 abandonné. 37 tests. |
 | 2026-11-09 | Liquidité de lancement : 500 000 BILL + 50 USDC ; 499,5 M BILL en réserve `AutoLiquidity`, injectés au fil des récoltes de la contribution de 1 %. Lots : seul le pionnier est fixe, les autres livrent exactement x2 au cours TWAP (quantité variable), invendus conservés. 47 tests. |
+| 2026-11-09 | PR #5 fusionnée. Archivage du code V2 (TREVIO) dans `v2/`. V1 en attente. |
 | À venir | Phase 0 (#2), V4 programme de participation (#3), anti-sybil (#4), audit. |
