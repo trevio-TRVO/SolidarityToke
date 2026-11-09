@@ -10,11 +10,17 @@ interface ICommunityLots {
     function hasBought(address who) external view returns (bool);
 }
 
+interface ICouncilRegistry {
+    function isMember(address who) external view returns (bool);
+}
+
 /// @title SolidarityWallet - reçoit les 5 % d'aide directe et paie les factures validées.
 /// @notice Sans admin sur le token. Dernier contrôle humain sur la distribution :
 ///         conseil de 10 comptes (poids 1) + fondateur (poids 3), seuil de 5.
 ///         Le fondateur seul ne peut pas valider (3 < 5) : il lui faut 2 membres du conseil.
 ///         Un paiement exige : >= 5 validateurs (acquéreurs de lots) + poids >= 5 + délai de 24 h.
+///         Le conseil est lu dans le CouncilRegistry (rotation mensuelle) : un membre retiré perd son droit
+///         de vote et ses approbations / votes d'annulation ne comptent plus (poids recalculé en direct).
 ///         Les fonds ne peuvent aller qu'au bénéficiaire de la demande, jamais ailleurs.
 contract SolidarityWallet {
     uint256 public constant COUNCIL_SIZE = 10;
@@ -28,8 +34,7 @@ contract SolidarityWallet {
     IERC20Min public immutable token;
     ICommunityLots public immutable lots;
     address public immutable founder;
-    address[COUNCIL_SIZE] public council;
-    mapping(address => bool) public isCouncil;
+    ICouncilRegistry public immutable registry;
 
     enum Status { None, Open, Executed, Cancelled }
 
@@ -39,13 +44,14 @@ contract SolidarityWallet {
         bytes32 invoiceHash; // empreinte du dossier hors chaîne (aucune donnée privée sur la chaîne)
         uint64 validatedAt;  // 0 tant que < MIN_VALIDATORS
         uint32 validators;
-        uint32 weight;
         Status status;
     }
 
     Request[] public requests;
     mapping(uint256 => mapping(address => bool)) public validated;
     mapping(uint256 => mapping(address => bool)) public approved;
+    mapping(uint256 => address[]) private _approvers;
+    mapping(uint256 => address[]) private _cancellers;
     mapping(address => uint256) public lastPaid;
 
     event RequestCreated(uint256 indexed id, address indexed payee, uint256 amount, bytes32 invoiceHash);
@@ -54,17 +60,16 @@ contract SolidarityWallet {
     event Cancelled(uint256 indexed id, address indexed by);
     event Paid(uint256 indexed id, address indexed payee, uint256 amount);
 
-    constructor(IERC20Min _token, ICommunityLots _lots, address _founder, address[COUNCIL_SIZE] memory _council) {
-        require(_founder != address(0), "zero founder");
+    constructor(IERC20Min _token, ICommunityLots _lots, address _founder, ICouncilRegistry _registry) {
+        require(_founder != address(0) && address(_registry) != address(0), "zero address");
         token = _token;
         lots = _lots;
         founder = _founder;
-        for (uint256 i; i < COUNCIL_SIZE; i++) {
-            address m = _council[i];
-            require(m != address(0) && m != _founder && !isCouncil[m], "bad member");
-            isCouncil[m] = true;
-            council[i] = m;
-        }
+        registry = _registry;
+    }
+
+    function isCouncil(address a) public view returns (bool) {
+        return registry.isMember(a);
     }
 
     function _cooledDown(address a) internal view returns (bool) {
@@ -74,7 +79,11 @@ contract SolidarityWallet {
 
     function _weightOf(address a) internal view returns (uint256) {
         if (a == founder) return FOUNDER_WEIGHT;
-        return isCouncil[a] ? 1 : 0;
+        return registry.isMember(a) ? 1 : 0;
+    }
+
+    function _liveWeight(address[] storage list) internal view returns (uint256 w) {
+        for (uint256 i; i < list.length; i++) w += _weightOf(list[i]);
     }
 
     /// @notice Dépose une demande (le dossier complet reste hors chaîne, seule son empreinte est publiée).
@@ -83,7 +92,7 @@ contract SolidarityWallet {
         require(amount <= token.balanceOf(address(this)) * MAX_BPS_PER_PAYMENT / 10_000, "above cap");
         require(_cooledDown(payee), "payee cooldown");
         id = requests.length;
-        requests.push(Request(payee, amount, invoiceHash, 0, 0, 0, Status.Open));
+        requests.push(Request(payee, amount, invoiceHash, 0, 0, Status.Open));
         emit RequestCreated(id, payee, amount, invoiceHash);
     }
 
@@ -108,8 +117,8 @@ contract SolidarityWallet {
         require(w > 0, "not council");
         require(!approved[id][msg.sender], "already approved");
         approved[id][msg.sender] = true;
-        r.weight += uint32(w);
-        emit Approved(id, msg.sender, r.weight);
+        _approvers[id].push(msg.sender);
+        emit Approved(id, msg.sender, _liveWeight(_approvers[id]));
     }
 
     /// @notice Le fondateur seul, ou un poids de 5 via cancelVotes, peut annuler. Voir cancelByCouncil.
@@ -119,16 +128,14 @@ contract SolidarityWallet {
     }
 
     mapping(uint256 => mapping(address => bool)) public cancelVoted;
-    mapping(uint256 => uint256) public cancelWeight;
 
     /// @notice Le conseil peut annuler à un poids cumulé de 5.
     function cancelByCouncil(uint256 id) external {
-        uint256 w = _weightOf(msg.sender);
-        require(w > 0, "not council");
+        require(_weightOf(msg.sender) > 0, "not council");
         require(!cancelVoted[id][msg.sender], "already voted");
         cancelVoted[id][msg.sender] = true;
-        cancelWeight[id] += w;
-        if (cancelWeight[id] >= THRESHOLD) _cancel(id);
+        _cancellers[id].push(msg.sender);
+        if (_liveWeight(_cancellers[id]) >= THRESHOLD) _cancel(id);
     }
 
     function _cancel(uint256 id) internal {
@@ -143,13 +150,18 @@ contract SolidarityWallet {
         Request storage r = requests[id];
         require(r.status == Status.Open, "not open");
         require(r.validators >= MIN_VALIDATORS, "validators");
-        require(r.weight >= THRESHOLD, "council weight");
+        require(_liveWeight(_approvers[id]) >= THRESHOLD, "council weight");
         require(block.timestamp >= r.validatedAt + CYCLE, "cycle not elapsed");
         require(_cooledDown(r.payee), "payee cooldown");
         r.status = Status.Executed;
         lastPaid[r.payee] = block.timestamp;
         require(token.transfer(r.payee, r.amount), "transfer failed");
         emit Paid(id, r.payee, r.amount);
+    }
+
+    /// @notice Poids d'approbation actuel : les approbations de membres retirés par une rotation ne comptent pas.
+    function approvalWeight(uint256 id) external view returns (uint256) {
+        return _liveWeight(_approvers[id]);
     }
 
     function requestCount() external view returns (uint256) {

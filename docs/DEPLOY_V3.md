@@ -4,7 +4,8 @@ Base : suit le V2 (`v2/`, TrvoToken) : offre fixe frappée au constructeur, aucu
 
 ## Contrats
 1. `BillPayProtocol` : token. 10 % de contribution au trade uniquement (5 % aide, 2 % burn, 2 % opérationnel, 1 % auto-liquidité), limite de vente de 1 % de l'offre vers une paire.
-2. `SolidarityWallet` : reçoit les 5 %, paie les factures validées (conseil + 5 acquéreurs de lots).
+2. `CouncilRegistry` : détient les 10 sièges du conseil, rotation mensuelle confirmée par des signataires d'élection fixes (voir `COUNCIL.md`).
+2. `SolidarityWallet` : reçoit les 5 %, paie les factures validées (conseil lu dans le registre + 5 acquéreurs de lots).
 3. `CommunityLots` : 15 % en 1 500 lots (voir `V3_COMMUNITY_DISTRIBUTION.md`).
 5. `MonthlyVesting` : 15 % croissance, 1/48 par période de 30 jours.
 4. `AutoLiquidity` : reçoit le 1 % et l'ajoute à la liquidité (LP verrouillés à l'adresse morte), appel public, 1 fois par 24 h.
@@ -18,7 +19,7 @@ Base : suit le V2 (`v2/`, TrvoToken) : offre fixe frappée au constructeur, aucu
 | Croissance et marketing | 15 | `MonthlyVesting` | 48 mois, 1/48 par mois (validé) |
 
 ## Déploiement
-`script/DeployV3.s.sol` déploie en une passe, dans l'ordre : VestingWallet fondateur, `MonthlyVesting`, `SolidarityWallet`, `CommunityLots`, `AutoLiquidity`, `BillPayProtocol`. Variable `ROUTER` : routeur Uniswap V2 officiel sur Base, à vérifier. La paire est **BILL/USDC** (pas ETH) : le prix des lots est ainsi calculé directement en USDC. Ces contrats se référencent entre eux : les adresses sont prédites par nonce et vérifiées (`require`). Le script a été exécuté en simulation locale sans erreur.
+`script/DeployV3.s.sol` déploie en une passe, dans l'ordre : VestingWallet fondateur, `MonthlyVesting`, `CouncilRegistry`, `SolidarityWallet`, `CommunityLots`, `AutoLiquidity`, `BillPayProtocol`. Variables propres au conseil : `COUNCIL` (les 10 sièges initiaux), `ELECTION_SIGNERS` (adresses séparées par des virgules, 1 à 15, immuables) et `ELECTION_THRESHOLD` (seuil M ≤ N). Choisir des signataires publics, distincts du fondateur et des membres du conseil, de préférence des multisigs. Variable `ROUTER` : routeur Uniswap V2 officiel sur Base, à vérifier. La paire est **BILL/USDC** (pas ETH) : le prix des lots est ainsi calculé directement en USDC. Ces contrats se référencent entre eux : les adresses sont prédites par nonce et vérifiées (`require`). Le script a été exécuté en simulation locale sans erreur.
 
 `forge script script/DeployV3.s.sol --rpc-url base_sepolia --account <keystore> --broadcast`
 
