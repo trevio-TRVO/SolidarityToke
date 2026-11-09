@@ -4,6 +4,7 @@ pragma solidity ^0.8.20;
 import {BillPayProtocol} from "../contracts/BillPayProtocol.sol";
 
 interface Vm {
+    function warp(uint256) external;
     function prank(address) external;
     function expectRevert(bytes calldata) external;
 }
@@ -37,12 +38,12 @@ contract BillPayProtocolTest {
     }
 
     function testSellTakesTenPercentSplit() public {
-        vm.prank(USER); t.transfer(PAIR, 5_000e18);
-        require(t.balanceOf(PAIR) == 500_000e18 + 4_500e18, "pair 90%");
-        require(t.balanceOf(AID) == 250e18, "5% aid");
-        require(t.balanceOf(OPS) == 100e18, "2% ops");
-        require(t.balanceOf(LIQ) == 50e18, "1% liq");
-        require(t.totalSupply() == SUPPLY - 100e18, "2% burned");
+        vm.prank(USER); t.transfer(PAIR, 1_000e18);
+        require(t.balanceOf(PAIR) == 500_000e18 + 900e18, "pair 90%");
+        require(t.balanceOf(AID) == 50e18, "5% aid");
+        require(t.balanceOf(OPS) == 20e18, "2% ops");
+        require(t.balanceOf(LIQ) == 10e18, "1% liq");
+        require(t.totalSupply() == SUPPLY - 20e18, "2% burned");
     }
 
     function testBuyTakesTenPercent() public {
@@ -57,10 +58,36 @@ contract BillPayProtocolTest {
         require(t.balanceOf(AID) == 0, "no aid");
     }
 
-    function testSellLimitOnePercentOfSupply() public {
-        vm.prank(USER); vm.expectRevert("sell limit 1%");
+    function testLaunchLimitPerTx() public {
+        vm.prank(USER); vm.expectRevert("sell limit per tx");
+        t.transfer(PAIR, 1_001e18);
+        vm.prank(USER); t.transfer(PAIR, 1_000e18);
+    }
+
+    function testLaunchLimitPerWalletPerDay() public {
+        vm.prank(USER); t.transfer(PAIR, 900e18);
+        vm.prank(USER); t.transfer(PAIR, 900e18);
+        vm.prank(USER); vm.expectRevert("sell limit per day");
+        t.transfer(PAIR, 300e18);
+        vm.warp(block.timestamp + 1 days);
+        vm.prank(USER); t.transfer(PAIR, 900e18);
+    }
+
+    function testLimitsRelaxAfterLaunch() public {
+        vm.warp(block.timestamp + 7 days);
+        vm.prank(USER); vm.expectRevert("sell limit per tx");
         t.transfer(PAIR, 10_001e18);
-        vm.prank(USER); t.transfer(PAIR, 10_000e18);
+        vm.prank(USER); t.transfer(PAIR, 9_900e18);
+        vm.prank(USER); vm.expectRevert("sell limit per day");
+        t.transfer(PAIR, 200e18);
+    }
+
+    function testExemptSeederUnlimited() public {
+        vm.prank(LP); t.transfer(PAIR, 100_000e18);
+    }
+
+    function testBuysNotLimited() public {
+        vm.prank(PAIR); t.transfer(USER2, 100_000e18);
     }
 
     function testSellLimitDoesNotApplyToP2P() public {

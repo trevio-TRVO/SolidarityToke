@@ -5,19 +5,20 @@ import {Script, console2} from "forge-std/Script.sol";
 import {VestingWallet} from "@openzeppelin/contracts/finance/VestingWallet.sol";
 import {BillPayProtocol} from "../contracts/BillPayProtocol.sol";
 import {CommunityLots, IERC20} from "../contracts/CommunityLots.sol";
+import {AutoLiquidity, IERC20AL, IRouterV2, IPairV2} from "../contracts/AutoLiquidity.sol";
 import {SolidarityWallet, IERC20Min, ICommunityLots} from "../contracts/SolidarityWallet.sol";
 
 /// Répartition de 1 000 000 000 BILL :
 ///   50 % liquidité initiale (LIQUIDITY_SEEDER) · 20 % fondateur (VestingWallet)
 ///   15 % CommunityLots · 15 % croissance et marketing (VestingWallet)
 /// Les adresses des contrats sont prédites par nonce car elles se référencent mutuellement.
-/// Variables : FOUNDER, LIQUIDITY_SEEDER, OPERATIONS_WALLET, LIQUIDITY_RESERVE, GROWTH_BENEFICIARY, PAIR,
+/// Variables : FOUNDER, LIQUIDITY_SEEDER, OPERATIONS_WALLET, ROUTER, GROWTH_BENEFICIARY, PAIR,
 /// USDC, TREASURY, COUNCIL (10 adresses, virgules), FREE_WALLETS (10 adresses), PRICES, TOKENS_PER_LOT (listes).
 /// La clé privée se passe via --account / --ledger, jamais dans un fichier.
 contract DeployV3 is Script {
     uint256 public constant SUPPLY = 1_000_000_000e18;
-    uint256 public constant FOUNDER_CLIFF = 365 days; // même modèle que l'équipe du V2
-    uint256 public constant FOUNDER_DURATION = 4 * 365 days;
+    uint256 public constant FOUNDER_CLIFF = 90 days; // proposé : revenu rapide, V2 = 12 mois
+    uint256 public constant FOUNDER_DURATION = 3 * 365 days; // V2 = 48 mois
     uint256 public constant GROWTH_DURATION = 5 * 365 days; // même modèle que la trésorerie du V2
 
     struct Deployed {
@@ -25,14 +26,16 @@ contract DeployV3 is Script {
         address growthVesting;
         address solidarity;
         address lots;
+        address autoLiquidity;
         address token;
     }
 
     function run() external returns (Deployed memory d) {
         address deployer = msg.sender;
         uint256 n = vm.getNonce(deployer);
-        address predictedToken = vm.computeCreateAddress(deployer, n + 4);
+        address predictedToken = vm.computeCreateAddress(deployer, n + 5);
         address predictedLots = vm.computeCreateAddress(deployer, n + 3);
+        address predictedAutoLiq = vm.computeCreateAddress(deployer, n + 4);
         address predictedSolidarity = vm.computeCreateAddress(deployer, n + 2);
 
         vm.startBroadcast();
@@ -63,6 +66,26 @@ contract DeployV3 is Script {
         );
         require(d.lots == predictedLots, "nonce: lots");
 
+        d.autoLiquidity = address(
+            new AutoLiquidity(
+                IERC20AL(predictedToken), IRouterV2(vm.envAddress("ROUTER")), IPairV2(vm.envAddress("PAIR"))
+            )
+        );
+        require(d.autoLiquidity == predictedAutoLiq, "nonce: autoLiquidity");
+
+        d.token = _deployToken(d);
+        require(d.token == predictedToken, "nonce: token");
+        vm.stopBroadcast();
+
+        console2.log("BillPayProtocol", d.token);
+        console2.log("CommunityLots", d.lots);
+        console2.log("AutoLiquidity", d.autoLiquidity);
+        console2.log("SolidarityWallet", d.solidarity);
+        console2.log("FounderVesting", d.founderVesting);
+        console2.log("GrowthVesting", d.growthVesting);
+    }
+
+    function _deployToken(Deployed memory d) internal returns (address) {
         address seeder = vm.envAddress("LIQUIDITY_SEEDER");
         address[] memory r = new address[](4);
         uint256[] memory a = new uint256[](4);
@@ -76,26 +99,11 @@ contract DeployV3 is Script {
         address[] memory exempt = new address[](1);
         exempt[0] = seeder;
 
-        d.token = address(
+        return address(
             new BillPayProtocol(
-                SUPPLY,
-                r,
-                a,
-                d.solidarity,
-                vm.envAddress("OPERATIONS_WALLET"),
-                vm.envAddress("LIQUIDITY_RESERVE"),
-                pairs,
-                exempt
+                SUPPLY, r, a, d.solidarity, vm.envAddress("OPERATIONS_WALLET"), d.autoLiquidity, pairs, exempt
             )
         );
-        require(d.token == predictedToken, "nonce: token");
-        vm.stopBroadcast();
-
-        console2.log("BillPayProtocol", d.token);
-        console2.log("CommunityLots", d.lots);
-        console2.log("SolidarityWallet", d.solidarity);
-        console2.log("FounderVesting", d.founderVesting);
-        console2.log("GrowthVesting", d.growthVesting);
     }
 
     function _toTen(address[] memory a) internal pure returns (address[10] memory out) {
