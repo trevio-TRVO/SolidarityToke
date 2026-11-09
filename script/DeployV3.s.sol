@@ -2,38 +2,104 @@
 pragma solidity ^0.8.20;
 
 import {Script, console2} from "forge-std/Script.sol";
+import {VestingWallet} from "@openzeppelin/contracts/finance/VestingWallet.sol";
 import {BillPayProtocol} from "../contracts/BillPayProtocol.sol";
+import {CommunityLots, IERC20} from "../contracts/CommunityLots.sol";
+import {SolidarityWallet, IERC20Min, ICommunityLots} from "../contracts/SolidarityWallet.sol";
 
-/// Variables d'environnement : SUPPLY, COMMUNITY_POOL (15 %), LIQUIDITY_SEEDER, REST_RECIPIENT,
-/// SOLIDARITY_WALLET, OPERATIONS_WALLET, LIQUIDITY_RESERVE, PAIR (peut être vide avant création).
-/// La clé privée est passée par --account / --ledger, jamais écrite dans un fichier.
+/// Répartition de 1 000 000 000 BILL :
+///   50 % liquidité initiale (LIQUIDITY_SEEDER) · 20 % fondateur (VestingWallet)
+///   15 % CommunityLots · 15 % croissance et marketing (VestingWallet)
+/// Les adresses des contrats sont prédites par nonce car elles se référencent mutuellement.
+/// Variables : FOUNDER, LIQUIDITY_SEEDER, OPERATIONS_WALLET, LIQUIDITY_RESERVE, GROWTH_BENEFICIARY, PAIR,
+/// USDC, TREASURY, COUNCIL (10 adresses, virgules), FREE_WALLETS (10 adresses), PRICES, TOKENS_PER_LOT (listes).
+/// La clé privée se passe via --account / --ledger, jamais dans un fichier.
 contract DeployV3 is Script {
-    function run() external returns (BillPayProtocol token) {
-        uint256 supply = vm.envUint("SUPPLY");
-        address[] memory r = new address[](3);
-        uint256[] memory a = new uint256[](3);
-        r[0] = vm.envAddress("COMMUNITY_POOL");   a[0] = supply * 15 / 100;
-        r[1] = vm.envAddress("LIQUIDITY_SEEDER"); a[1] = supply * 10 / 100;
-        r[2] = vm.envAddress("REST_RECIPIENT");   a[2] = supply - a[0] - a[1];
+    uint256 public constant SUPPLY = 1_000_000_000e18;
+    uint256 public constant FOUNDER_CLIFF = 365 days; // même modèle que l'équipe du V2
+    uint256 public constant FOUNDER_DURATION = 4 * 365 days;
+    uint256 public constant GROWTH_DURATION = 5 * 365 days; // même modèle que la trésorerie du V2
+
+    struct Deployed {
+        address founderVesting;
+        address growthVesting;
+        address solidarity;
+        address lots;
+        address token;
+    }
+
+    function run() external returns (Deployed memory d) {
+        address deployer = msg.sender;
+        uint256 n = vm.getNonce(deployer);
+        address predictedToken = vm.computeCreateAddress(deployer, n + 4);
+        address predictedLots = vm.computeCreateAddress(deployer, n + 3);
+        address predictedSolidarity = vm.computeCreateAddress(deployer, n + 2);
+
+        vm.startBroadcast();
+        d.founderVesting = address(
+            new VestingWallet(vm.envAddress("FOUNDER"), uint64(block.timestamp + FOUNDER_CLIFF), uint64(FOUNDER_DURATION))
+        );
+        d.growthVesting = address(
+            new VestingWallet(vm.envAddress("GROWTH_BENEFICIARY"), uint64(block.timestamp), uint64(GROWTH_DURATION))
+        );
+
+        address[10] memory council = _toTen(vm.envAddress("COUNCIL", ","));
+        d.solidarity = address(
+            new SolidarityWallet(
+                IERC20Min(predictedToken), ICommunityLots(predictedLots), vm.envAddress("FOUNDER"), council
+            )
+        );
+        require(d.solidarity == predictedSolidarity, "nonce: solidarity");
+
+        d.lots = address(
+            new CommunityLots(
+                IERC20(predictedToken),
+                IERC20(vm.envAddress("USDC")),
+                vm.envAddress("TREASURY"),
+                vm.envUint("PRICES", ","),
+                vm.envUint("TOKENS_PER_LOT", ","),
+                _toTen(vm.envAddress("FREE_WALLETS", ","))
+            )
+        );
+        require(d.lots == predictedLots, "nonce: lots");
+
+        address seeder = vm.envAddress("LIQUIDITY_SEEDER");
+        address[] memory r = new address[](4);
+        uint256[] memory a = new uint256[](4);
+        r[0] = seeder;            a[0] = SUPPLY * 50 / 100;
+        r[1] = d.founderVesting;  a[1] = SUPPLY * 20 / 100;
+        r[2] = d.lots;            a[2] = SUPPLY * 15 / 100;
+        r[3] = d.growthVesting;   a[3] = SUPPLY * 15 / 100;
 
         address[] memory pairs = new address[](1);
         pairs[0] = vm.envAddress("PAIR");
-        address[] memory exempt = new address[](2);
-        exempt[0] = r[1];
-        exempt[1] = r[0];
+        address[] memory exempt = new address[](1);
+        exempt[0] = seeder;
 
-        vm.startBroadcast();
-        token = new BillPayProtocol(
-            supply,
-            r,
-            a,
-            vm.envAddress("SOLIDARITY_WALLET"),
-            vm.envAddress("OPERATIONS_WALLET"),
-            vm.envAddress("LIQUIDITY_RESERVE"),
-            pairs,
-            exempt
+        d.token = address(
+            new BillPayProtocol(
+                SUPPLY,
+                r,
+                a,
+                d.solidarity,
+                vm.envAddress("OPERATIONS_WALLET"),
+                vm.envAddress("LIQUIDITY_RESERVE"),
+                pairs,
+                exempt
+            )
         );
+        require(d.token == predictedToken, "nonce: token");
         vm.stopBroadcast();
-        console2.log("BillPayProtocol", address(token));
+
+        console2.log("BillPayProtocol", d.token);
+        console2.log("CommunityLots", d.lots);
+        console2.log("SolidarityWallet", d.solidarity);
+        console2.log("FounderVesting", d.founderVesting);
+        console2.log("GrowthVesting", d.growthVesting);
+    }
+
+    function _toTen(address[] memory a) internal pure returns (address[10] memory out) {
+        require(a.length == 10, "need 10 addresses");
+        for (uint256 i; i < 10; i++) out[i] = a[i];
     }
 }

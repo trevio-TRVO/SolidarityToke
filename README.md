@@ -46,4 +46,5 @@ Spécification : [docs/SOLIDARITY_DASHBOARD.md](docs/SOLIDARITY_DASHBOARD.md) (t
 | 2026-11-09 | Composition du conseil (3 pionniers, influenceur, contributeurs X/Facebook/TikTok, trader, top wallet, 1 siège élu), besoin du site et maquette statique `site/index.html`. |
 | 2026-11-09 | Nommage validé : contrat `BillPayProtocol`, ticker `BILL`, dépôt `billpay-protocol`, interface « BillPay Hub / BillPay DAO », site sur GitHub Pages. Le renommage du dépôt actuel (`SolidarityToke`) reste à faire par le propriétaire (droits insuffisants). |
 | 2026-11-09 | Token `BillPayProtocol.sol` (7 tests), script `DeployV3.s.sol`, guide de déploiement. Suit le modèle V2. Anti-crash non spécifié. |
+| 2026-11-09 | Répartition fixée : 50 % liquidité, 20 % fondateur (vesting), 15 % lots communautaires, 15 % croissance (vesting). Script de déploiement unique avec adresses prédites, simulé sans erreur. |
 | À venir | Phase 0 (#2), V4 programme de participation (#3), anti-sybil (#4), audit. |
