@@ -51,5 +51,11 @@ Spécification : [docs/SOLIDARITY_DASHBOARD.md](docs/SOLIDARITY_DASHBOARD.md) (t
 | 2026-11-09 | Contrat `SolidarityWallet.sol` : reçoit les 5 %, paie uniquement le bénéficiaire d'une demande. Conditions : ≥ 5 validateurs acquéreurs de lots, poids du conseil ≥ 5 (10 comptes à 1, fondateur à 3, donc le fondateur a besoin de 2 membres), délai de 24 h, plafond de 20 % du solde, 1 paiement par bénéficiaire / 30 jours. Annulation : fondateur seul, ou conseil à poids 5. 10 tests. |
 | 2026-11-09 | Composition du conseil (3 pionniers, influenceur, contributeurs X/Facebook/TikTok, trader, top wallet, 1 siège élu), besoin du site et maquette statique `site/index.html`. |
 | 2026-11-09 | Nommage validé : contrat `BillPayProtocol`, ticker `BILL`, dépôt `billpay-protocol`, interface « BillPay Hub / BillPay DAO », site sur GitHub Pages. Le renommage du dépôt actuel (`SolidarityToke`) reste à faire par le propriétaire (droits insuffisants). |
+| 2026-11-09 | Token `BillPayProtocol.sol` (7 tests), script `DeployV3.s.sol`, guide de déploiement. Suit le modèle V2. Anti-crash non spécifié. |
+| 2026-11-09 | Répartition fixée : 50 % liquidité, 20 % fondateur (vesting), 15 % lots communautaires, 15 % croissance (vesting). Script de déploiement unique avec adresses prédites, simulé sans erreur. |
+| 2026-11-09 | Protection de lancement 7 jours (0,1 % par vente, 0,2 % par wallet et par jour), contrat `AutoLiquidity`, pool V2 uniquement, vesting fondateur proposé 90 j + 36 mois. 30 tests. |
+| 2026-11-09 | Vesting fondateur validé : 90 jours puis 36 mois linéaires. |
+| 2026-11-09 | Lots refaits : 100 pionniers (1 %, 10 USDC) + 14 séries de 100 (90 payants à 50 % du prix de marché via TWAP, 10 gratuits), une série par 30 jours. Croissance : 48 mois mensuels (`MonthlyVesting`). Paire BILL/USDC. V1 abandonné. 37 tests. |
+| 2026-11-09 | Liquidité de lancement : 500 000 BILL + 50 USDC ; 499,5 M BILL en réserve `AutoLiquidity`, injectés au fil des récoltes de la contribution de 1 %. Lots : seul le pionnier est fixe, les autres livrent exactement x2 au cours TWAP (quantité variable), invendus conservés. 47 tests. |
 | 2026-11-09 | PR #5 fusionnée. Archivage du code V2 (TREVIO) dans `v2/`. V1 en attente. |
 | À venir | Phase 0 (#2), V4 programme de participation (#3), anti-sybil (#4), audit. |
