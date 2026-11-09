@@ -4,7 +4,8 @@ Basis: follows V2 (`v2/`, TrvoToken): fixed supply minted in the constructor, no
 
 ## Contracts
 1. `BillPayProtocol`: token. 10% contribution on trades only (5% aid, 2% burn, 2% operations, 1% auto-liquidity), 1% of supply sell limit towards a pair.
-2. `SolidarityWallet`: receives the 5%, pays validated bills (council + 5 lot buyers).
+2. `CouncilRegistry`: holds the 10 council seats, monthly rotation confirmed by fixed election signers (see `COUNCIL.md`).
+2. `SolidarityWallet`: receives the 5%, pays validated bills (council read from the registry + 5 lot buyers).
 3. `CommunityLots`: 15% in 1,500 lots (see `V3_COMMUNITY_DISTRIBUTION.md`).
 5. `MonthlyVesting`: 15% growth, 1/48 per 30-day period.
 4. `AutoLiquidity`: receives the 1% and adds it to liquidity (LP locked at the dead address), public call, once per 24 h.
@@ -18,7 +19,7 @@ Basis: follows V2 (`v2/`, TrvoToken): fixed supply minted in the constructor, no
 | Growth and marketing | 15 | `MonthlyVesting` | 48 months, 1/48 per month (validated) |
 
 ## Deployment
-`script/DeployV3.s.sol` deploys in a single pass, in order: founder VestingWallet, `MonthlyVesting`, `SolidarityWallet`, `CommunityLots`, `AutoLiquidity`, `BillPayProtocol`. `ROUTER` variable: official Uniswap V2 router on Base, to be verified. The pair is **BILL/USDC** (not ETH): the lot price is thus computed directly in USDC. These contracts reference each other: the addresses are predicted by nonce and verified (`require`). The script was run in local simulation without errors.
+`script/DeployV3.s.sol` deploys in a single pass, in order: founder VestingWallet, `MonthlyVesting`, `CouncilRegistry`, `SolidarityWallet`, `CommunityLots`, `AutoLiquidity`, `BillPayProtocol`. Council-specific variables: `COUNCIL` (the 10 initial seats), `ELECTION_SIGNERS` (comma-separated addresses, 1 to 15, immutable) and `ELECTION_THRESHOLD` (threshold M ≤ N). Choose public signers, distinct from the founder and the council members, preferably multisigs. `ROUTER` variable: official Uniswap V2 router on Base, to be verified. The pair is **BILL/USDC** (not ETH): the lot price is thus computed directly in USDC. These contracts reference each other: the addresses are predicted by nonce and verified (`require`). The script was run in local simulation without errors.
 
 `forge script script/DeployV3.s.sol --rpc-url base_sepolia --account <keystore> --broadcast`
 
