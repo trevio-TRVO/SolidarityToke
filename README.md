@@ -23,7 +23,7 @@ Spécification complète : [docs/V3_COMMUNITY_DISTRIBUTION.md](docs/V3_COMMUNITY
 
 ## Aide directe : site web et vote communautaire
 
-Spécification : [docs/SOLIDARITY_DASHBOARD.md](docs/SOLIDARITY_DASHBOARD.md) (tableau de bord sur Base, espace demandeurs, vote pondéré par les tokens, distribution toutes les 24 h, exemption de la limite de vente de 1 % pour les bénéficiaires).
+Spécification : [docs/SOLIDARITY_DASHBOARD.md](docs/SOLIDARITY_DASHBOARD.md) (tableau de bord sur Base, espace demandeurs, vote public par identification, distribution toutes les 24 h, limite de vente de 1 % sur les plateformes de trading uniquement).
 
 ## Journal de bord
 
@@ -34,4 +34,5 @@ Spécification : [docs/SOLIDARITY_DASHBOARD.md](docs/SOLIDARITY_DASHBOARD.md) (t
 | 2026-11-09 | Intégration de la règle d'or au README. Décision : la contribution de 10 % ne s'applique qu'au trade ; les `claim()` du contrat de lots ne sont donc pas concernés. |
 | 2026-11-09 | Spécification du tableau de bord, du vote pondéré (min. 1 000 SLDR), de la distribution toutes les 24 h et de l'exemption de la limite de vente de 1 % pour les bénéficiaires. |
 | 2026-11-09 | Tests Foundry : 9 tests passent (achat, 1/wallet, séries et prix ×2, épuisement, cliff + linéaire, lots gratuits, pool sous-financé, limites du constructeur). Lancer : `forge test --use <solc 0.8.26>`. |
+| 2026-11-09 | Décisions : vote public (identification Google ou équivalent, une voix par compte) à la place du vote pondéré ; limite de vente de 1 % uniquement sur les plateformes de trading (P2P libre), donc plus d'exemption par bénéficiaire ; le token route seulement les 5 % vers le `solidarityWallet`, géré par un contrat dédié. |
 | À venir | Phase 0 (#2), V4 programme de participation (#3), anti-sybil (#4), audit. |
