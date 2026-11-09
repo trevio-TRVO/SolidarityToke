@@ -1,0 +1,5 @@
+- Valeurs exactes de `pricePerSeries` / `tokensPerSeries` (déploiement).
+- Phase 0 (100 lots à 10 USDC) : mécanisme d'attribution.
+- Anti-sybil : 1 achat/wallet est contournable par multi-wallets.
+- Tests (Foundry/Hardhat) et audit avant mainnet.
+- Règle d'or : le contrat de lots doit être exempté de la contribution de 10 % (claim) ou le calcul des lots doit l'intégrer.
