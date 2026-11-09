@@ -10,6 +10,11 @@ Contrat : `contracts/CommunityLots.sol` (sans owner, paramètres immuables).
 
 Total : (100 + 14 × 100) × 100 000 = 150 000 000 BILL.
 
+## Lancement des séries
+- Au lancement, **seuls les 100 lots pionniers** sont en vente.
+- Les séries à 50 USDC ne démarrent que lorsque le cours TWAP a décollé : `openSeries()` (public, une seule fois) exige un prix >= 0,001 USDC/BILL (x10 du prix de lancement), soit un lot de 100 USDC <= 100 000 BILL. Série 1 au déclenchement, puis une série tous les 30 jours. Ce seuil garantit que 1 400 lots tiennent dans la réserve de 140 M BILL.
+- Avant le déclenchement, ni achat ni lots gratuits.
+
 ## Prix et quantité
 - Lot pionnier : **fixe** (100 000 BILL pour 10 USDC).
 - Lots suivants : **50 USDC** contre **100 USDC de BILL au cours TWAP** (x2, jamais plus). Exemple : BILL à 1 USDC, 50 USDC payés = 100 BILL. La quantité varie avec le prix : plus BILL monte, moins le lot contient de tokens (rareté). Plafond de sécurité : 10 000 000 BILL par lot. Si la réserve ne suffit plus, les achats sont refusés.

@@ -32,6 +32,7 @@ contract CommunityLots {
     uint256 public constant SERIES_INTERVAL = 30 days;
     uint256 public constant LOT_PRICE = 50e6; // 50 USDC, prix d'un lot payant
     uint256 public constant LOT_VALUE = 100e6; // valeur de marché livrée (x2) : 100 USDC
+    uint256 public constant TRIGGER_LOT_TOKENS = 100_000e18; // seuil : 100 USDC de BILL <= 100 000 BILL, soit prix >= 0,001 USDC (x10)
     uint256 public constant MAX_LOT_TOKENS = 10_000_000e18; // plafond de sécurité si le prix s'effondre
     uint256 public constant CLIFF = 45 days;
     uint256 public constant VESTING = 30 days;
@@ -42,7 +43,7 @@ contract CommunityLots {
     IERC20 public immutable usdc;
     IPair public immutable pair;        // paire BILL/USDC (Uniswap V2)
     address public immutable treasury;  // reçoit les USDC
-    uint256 public immutable start;
+    uint256 public seriesStart; // 0 tant que le prix n'a pas décollé
     address[FREE_LOTS] public freeWallets;
 
     struct Grant {
@@ -67,6 +68,7 @@ contract CommunityLots {
     uint256 public outstanding;
 
     event Purchased(address indexed buyer, bool pioneer, uint256 price);
+    event SeriesOpened(uint256 time);
     event FreeAllocated(uint256 indexed series);
     event Claimed(address indexed who, uint256 indexed grantId, uint256 amount);
     event OracleUpdated(uint256 time);
@@ -79,7 +81,6 @@ contract CommunityLots {
         pair = _pair;
         treasury = _treasury;
         freeWallets = _freeWallets;
-        start = block.timestamp;
     }
 
     // ---------- oracle TWAP ----------
@@ -127,9 +128,18 @@ contract CommunityLots {
 
     // ---------- séries ----------
 
-    /// @notice Nombre de séries continues ouvertes (1 dès le lancement, puis +1 tous les 30 jours).
+    /// @notice Lance les séries continues, une seule fois, dès que le cours TWAP a décollé (x10 du prix de lancement).
+    function openSeries() external {
+        require(seriesStart == 0, "already open");
+        require(lotTokens() <= TRIGGER_LOT_TOKENS, "price too low");
+        seriesStart = block.timestamp;
+        emit SeriesOpened(block.timestamp);
+    }
+
+    /// @notice Séries ouvertes : 0 avant le déclenchement, 1 au déclenchement, puis +1 tous les 30 jours.
     function openedSeries() public view returns (uint256 n) {
-        n = (block.timestamp - start) / SERIES_INTERVAL + 1;
+        if (seriesStart == 0) return 0;
+        n = (block.timestamp - seriesStart) / SERIES_INTERVAL + 1;
         if (n > SERIES_COUNT) n = SERIES_COUNT;
     }
 
