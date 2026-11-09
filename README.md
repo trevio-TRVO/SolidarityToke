@@ -45,4 +45,5 @@ Spécification : [docs/SOLIDARITY_DASHBOARD.md](docs/SOLIDARITY_DASHBOARD.md) (t
 | 2026-11-09 | Contrat `SolidarityWallet.sol` : reçoit les 5 %, paie uniquement le bénéficiaire d'une demande. Conditions : ≥ 5 validateurs acquéreurs de lots, poids du conseil ≥ 5 (10 comptes à 1, fondateur à 3, donc le fondateur a besoin de 2 membres), délai de 24 h, plafond de 20 % du solde, 1 paiement par bénéficiaire / 30 jours. Annulation : fondateur seul, ou conseil à poids 5. 10 tests. |
 | 2026-11-09 | Composition du conseil (3 pionniers, influenceur, contributeurs X/Facebook/TikTok, trader, top wallet, 1 siège élu), besoin du site et maquette statique `site/index.html`. |
 | 2026-11-09 | Nommage validé : contrat `BillPayProtocol`, ticker `BILL`, dépôt `billpay-protocol`, interface « BillPay Hub / BillPay DAO », site sur GitHub Pages. Le renommage du dépôt actuel (`SolidarityToke`) reste à faire par le propriétaire (droits insuffisants). |
+| 2026-11-09 | Token `BillPayProtocol.sol` (7 tests), script `DeployV3.s.sol`, guide de déploiement. Suit le modèle V2. Anti-crash non spécifié. |
 | À venir | Phase 0 (#2), V4 programme de participation (#3), anti-sybil (#4), audit. |
