@@ -14,7 +14,11 @@
 | 10 | Elected seat | Vote on the website |
 
 ## Points to settle
-- **The current contract freezes the council** (immutable). A monthly rotation requires a new version of `SolidarityWallet`: update of the 10 seats once a month, through a mechanism without a single key (e.g. a `CouncilRegistry` contract fed by the results).
+- **Rotation: implemented** (`contracts/CouncilRegistry.sol`). `SolidarityWallet` reads the council from the registry (immutable address). No owner: the rotation is confirmed by a **fixed** (immutable) set of election signers, threshold M of N. Each signer confirms the same exact list of 10 addresses; at the M-th `confirmRotation` call, the list applies. At most one rotation per 30 days (the first one 30 days after deployment), 10 distinct, non-zero addresses, different from the founder. Events: `RotationConfirmed`, `CouncilRotated`.
+- **Election signers (validated choice)**: a small group independent of the founder, threshold 3 of 5 (`ELECTION_SIGNERS` / `ELECTION_THRESHOLD` environment variables).
+- **Why not a vote by the outgoing council**: a council supermajority could re-elect itself and lock in power. The signers do not sit on the council and only publish the election results.
+- **Effects of the rotation**: a removed member loses all voting rights; their approvals and cancellation votes on open requests no longer count (weight recalculated at execution). The founder is never affected.
+- **Residual risk**: M colluding signers can impose a council, at most once a month; the set of signers never changes (in case of compromise, a new deployment would be needed). To be mitigated with public multisigs.
 - **Off-chain results** (X, Facebook, TikTok, influencer, web vote): an oracle or a committee is needed to publish the result on-chain. This is a trust point that must be framed.
 - **Wallet holding the most**: exclude the liquidity pair, contracts (lots, solidarityWallet), the founder and exchange addresses. Risk of artificial rotation between wallets before the close: use the average balance over the month.
 - **Top trader**: wash trading risk; compute on net PnL or on volume with a cap.
