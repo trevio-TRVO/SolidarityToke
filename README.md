@@ -26,4 +26,5 @@ Spécification complète : [docs/V3_COMMUNITY_DISTRIBUTION.md](docs/V3_COMMUNITY
 | 2026-11-09 | Spécification de la distribution communautaire V3 : séries de 100 lots (90 payants, 10 gratuits), prix max ×2 par série, quantité non croissante (rareté), 1 achat par wallet, cliff 45 j puis linéaire 30 j. |
 | 2026-11-09 | Contrat `CommunityLots.sol` écrit (sans owner, paramètres immuables, pool plafonné) et compilé. PR #5. |
 | 2026-11-09 | Intégration de la règle d'or au README. Point ouvert : la contribution de 10 % s'applique-t-elle aux `claim()` du contrat de lots ? Le contrat doit être exempté, sinon les bénéficiaires reçoivent moins que leur lot (issue #4). |
-| À venir | Tests Foundry (#1), Phase 0 (#2), V4 programme de participation (#3). |
+| 2026-11-09 | Tests Foundry : 9 tests passent (achat, 1/wallet, séries et prix ×2, épuisement, cliff + linéaire, lots gratuits, pool sous-financé, limites du constructeur). Lancer : `forge test --use <solc 0.8.26>`. |
+| À venir | Phase 0 (#2), V4 programme de participation (#3), anti-sybil (#4), audit. |
