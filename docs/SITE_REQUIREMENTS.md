@@ -1,4 +1,4 @@
-# Site web SolidarityToken : besoin
+# Site web BillPay Protocol : besoin
 
 Le site est le **premier projet communautaire**. Public, réseau Base.
 
@@ -37,3 +37,7 @@ Next.js + TypeScript, wagmi/viem (Base), Auth Google (OAuth), stockage chiffré 
 3. Espace Demandeurs et Tribunal.
 4. Espace Validateurs et Conseil.
 5. Audit de sécurité, puis ouverture.
+
+## Nommage
+- Interface : **BillPay Hub** (DApp de vote : **BillPay DAO**).
+- Hébergement : GitHub Pages. L'adresse suit le nom du dépôt : `https://trevio-TRVO.github.io/billpay-protocol-v3/` (pour `.../billpay-protocol`, il faudrait nommer le dépôt `billpay-protocol`).

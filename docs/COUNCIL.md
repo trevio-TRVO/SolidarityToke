@@ -10,7 +10,7 @@ Mandat **mensuel**. Le fondateur garde son poids de 3 ; le conseil compte 10 si�
 | 6 | Meilleur contributeur Facebook | Idem |
 | 7 | Meilleur contributeur TikTok | Idem |
 | 8 | Meilleur trader du mois | Classement on-chain (volume net, hors wash trading) |
-| 9 | Wallet la plus fournie en SLDR | Lecture on-chain à la clôture du mois |
+| 9 | Wallet la plus fournie en BILL | Lecture on-chain à la clôture du mois |
 | 10 | Siège élu | Vote sur le site web |
 
 ## Points à trancher

@@ -1,4 +1,4 @@
-# SolidarityToken (SLDR) V3
+# BillPay Protocol (BILL) V3
 
 Jeton déflationniste sur Base, sans admin : aucune modification possible après déploiement.
 
@@ -38,10 +38,11 @@ Spécification : [docs/SOLIDARITY_DASHBOARD.md](docs/SOLIDARITY_DASHBOARD.md) (t
 | 2026-11-09 | Spécification de la distribution communautaire V3 : séries de 100 lots (90 payants, 10 gratuits), prix max ×2 par série, quantité non croissante (rareté), 1 achat par wallet, cliff 45 j puis linéaire 30 j. |
 | 2026-11-09 | Contrat `CommunityLots.sol` écrit (sans owner, paramètres immuables, pool plafonné) et compilé. PR #5. |
 | 2026-11-09 | Intégration de la règle d'or au README. Décision : la contribution de 10 % ne s'applique qu'au trade ; les `claim()` du contrat de lots ne sont donc pas concernés. |
-| 2026-11-09 | Spécification du tableau de bord, du vote pondéré (min. 1 000 SLDR), de la distribution toutes les 24 h et de l'exemption de la limite de vente de 1 % pour les bénéficiaires. |
+| 2026-11-09 | Spécification du tableau de bord, du vote pondéré (min. 1 000 BILL), de la distribution toutes les 24 h et de l'exemption de la limite de vente de 1 % pour les bénéficiaires. |
 | 2026-11-09 | Tests Foundry : 9 tests passent (achat, 1/wallet, séries et prix ×2, épuisement, cliff + linéaire, lots gratuits, pool sous-financé, limites du constructeur). Lancer : `forge test --use <solc 0.8.26>`. |
 | 2026-11-09 | Décisions : vote public (identification Google ou équivalent, une voix par compte) à la place du vote pondéré ; limite de vente de 1 % uniquement sur les plateformes de trading (P2P libre), donc plus d'exemption par bénéficiaire ; le token route seulement les 5 % vers le `solidarityWallet`, géré par un contrat dédié. |
 | 2026-11-09 | Décision : paiement automatisé. Demande = facture + description (collage bloqué) ; contrôle IA anti-bots (signale, ne paie pas) ; validation sur chaîne par au moins 5 acquéreurs de lots ; vote public ; paiement au cycle de 24 h. Principe : faire évoluer le projet en le protégeant. |
 | 2026-11-09 | Contrat `SolidarityWallet.sol` : reçoit les 5 %, paie uniquement le bénéficiaire d'une demande. Conditions : ≥ 5 validateurs acquéreurs de lots, poids du conseil ≥ 5 (10 comptes à 1, fondateur à 3, donc le fondateur a besoin de 2 membres), délai de 24 h, plafond de 20 % du solde, 1 paiement par bénéficiaire / 30 jours. Annulation : fondateur seul, ou conseil à poids 5. 10 tests. |
 | 2026-11-09 | Composition du conseil (3 pionniers, influenceur, contributeurs X/Facebook/TikTok, trader, top wallet, 1 siège élu), besoin du site et maquette statique `site/index.html`. |
+| 2026-11-09 | Nommage validé : contrat `BillPayProtocol`, ticker `BILL`, dépôt `billpay-protocol-v3`, interface « BillPay Hub / BillPay DAO », site sur GitHub Pages. Le renommage du dépôt actuel (`SolidarityToke`) reste à faire par le propriétaire (droits insuffisants). |
 | À venir | Phase 0 (#2), V4 programme de participation (#3), anti-sybil (#4), audit. |
