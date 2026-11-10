@@ -6,14 +6,14 @@ Jeton déflationniste sur Base, sans admin : aucune modification possible après
 
 ## Règle d'or : l'Écosystème à Contribution Circulaire
 
-> Chaque transaction sur notre jeton n'est pas un coût, mais une contribution solidaire automatique de 10 % directement réinjectée pour stabiliser le marché et changer des vies.
+> Chaque échange du jeton est soumis à une contribution automatique de 10 %, répartie par le code comme ci-dessous. Aucun rendement ni aucune évolution de prix n'est promis.
 >
 > - **5 % d'Aide Directe** : alloués instantanément au financement et au paiement de factures d'électricité et de chauffage de familles en difficulté.
-> - **2 % de Raréfaction Déflationniste** : déduits pour détruire définitivement des jetons à chaque échange, créant un manque mathématique qui valorise les portefeuilles des détenteurs.
-> - **2 % de Support Opérationnel** : dédiés au marketing de guérilla et à la maintenance technique autonome pour propulser le projet.
-> - **1 % d'Auto-Liquidité** : figés par le code pour consolider en continu le plancher de prix et protéger les traders.
+> - **2 % de Raréfaction Déflationniste** : déduits pour détruire définitivement des jetons à chaque échange. Cela réduit l'offre, sans garantie d'effet sur le prix.
+> - **2 % de Support Opérationnel** : dédiés au marketing de guérilla et à la maintenance technique autonome pour financer le projet.
+> - **1 % d'Auto-Liquidité** : figés par le code pour ajouter de la liquidité à la paire. Cela ne crée aucun plancher de prix.
 >
-> Ici, plus le marché est actif, plus l'impact social est massif. Spéculer devient un acte de solidarité.
+> Plus le volume est élevé, plus la contribution collectée est importante. Le jeton est risqué et peut perdre toute sa valeur : n'engagez que ce que vous pouvez perdre.
 
 **La contribution ne s'applique qu'aux trades** (achat/vente via la paire de liquidité), pas aux simples transferts ni aux `claim()` de lots.
 
