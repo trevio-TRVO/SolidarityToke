@@ -35,7 +35,10 @@ contract DeployV3 is Script {
     }
 
     function run() external returns (Deployed memory d) {
-        address deployer = msg.sender;
+        // l'émetteur réel des transactions (--account / --ledger), pas le msg.sender du script
+        vm.startBroadcast();
+        (, address deployer,) = vm.readCallers();
+        vm.stopBroadcast();
         uint256 n = vm.getNonce(deployer);
         address predictedToken = vm.computeCreateAddress(deployer, n + 6);
         address predictedLots = vm.computeCreateAddress(deployer, n + 4);

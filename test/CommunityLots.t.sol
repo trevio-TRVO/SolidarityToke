@@ -67,13 +67,13 @@ contract CommunityLotsTest {
         pair.setUsdc(600_000e6);
         vm.warp(block.timestamp + 1 days);
         lots.update();
-        vm.warp(block.timestamp + 2 hours);
+        vm.warp(block.timestamp + 25 hours);
         lots.openSeries();
     }
 
     function _oracle() internal {
         lots.update();
-        vm.warp(block.timestamp + 2 hours);
+        vm.warp(block.timestamp + 25 hours);
     }
 
     function testPioneerLotFixedPriceAndSupply() public {
@@ -125,7 +125,7 @@ contract CommunityLotsTest {
         pair.setUsdc(200_000e6); // le prix quadruple
         vm.warp(block.timestamp + 1 days);
         lots.update();
-        vm.warp(block.timestamp + 2 hours);
+        vm.warp(block.timestamp + 25 hours);
         require(lots.lotTokens() < before_, "fewer tokens");
         // jamais plus de x2 : valeur livrée <= 10 USDC
         require(lots.lotTokens() <= before_, "never above x2");
@@ -145,7 +145,7 @@ contract CommunityLotsTest {
         vm.prank(y); vm.expectRevert("next series not open"); lots.buy();
         vm.warp(s0 + 30 days);
         lots.update();
-        vm.warp(block.timestamp + 2 hours);
+        vm.warp(block.timestamp + 25 hours);
         require(lots.availablePaidLots() == 90, "series 2");
         vm.prank(y); lots.buy();
     }
@@ -185,5 +185,26 @@ contract CommunityLotsTest {
     function testTotalPoolIs15Percent() public view {
         uint256 total = (100 + 14 * 100) * LOT;
         require(total == 150_000_000e18, "15% of 1B");
+    }
+
+    function testShortManipulationDoesNotMoveTwap() public {
+        _oracle();
+        // le prix est poussé x12 puis l'oracle est relu 2 h plus tard : la fenêtre minimale (24 h) n'est pas atteinte
+        pair.setUsdc(600_000e6);
+        vm.warp(block.timestamp + 1 days);
+        lots.update();
+        vm.warp(block.timestamp + 2 hours);
+        // le point récent (2 h) est ignoré : la moyenne repose sur l'ancien point (prix dilué sur > 24 h)
+        vm.expectRevert("price too low");
+        lots.openSeries();
+    }
+
+    function testLotTokensCappedAtLaunchPriceValue() public {
+        _oracle();
+        pair.setUsdc(1_000e6); // prix / 50 : sans plafond un lot livrerait 5 M BILL
+        vm.warp(block.timestamp + 1 days);
+        lots.update();
+        vm.warp(block.timestamp + 25 hours);
+        require(lots.lotTokens() == 1_000_000e18, "capped at 1M BILL");
     }
 }

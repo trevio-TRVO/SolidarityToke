@@ -34,11 +34,11 @@ contract CommunityLots {
     uint256 public constant LOT_PRICE = 50e6; // 50 USDC, prix d'un lot payant
     uint256 public constant LOT_VALUE = 100e6; // valeur de marché livrée (x2) : 100 USDC
     uint256 public constant TRIGGER_LOT_TOKENS = 100_000e18; // seuil : 100 USDC de BILL <= 100 000 BILL, soit prix >= 0,001 USDC (x10)
-    uint256 public constant MAX_LOT_TOKENS = 10_000_000e18; // plafond de sécurité si le prix s'effondre
+    uint256 public constant MAX_LOT_TOKENS = 1_000_000e18; // plafond de sécurité : valeur de 100 USDC au prix de lancement (0,0001)
     uint256 public constant CLIFF = 45 days;
     uint256 public constant VESTING = 30 days;
     uint256 public constant UPDATE_INTERVAL = 24 hours;
-    uint256 public constant MIN_TWAP_WINDOW = 1 hours;
+    uint256 public constant MIN_TWAP_WINDOW = 24 hours; // fenêtre minimale : une manipulation doit tenir 24 h
 
     IERC20 public immutable token;
     IERC20 public immutable usdc;
