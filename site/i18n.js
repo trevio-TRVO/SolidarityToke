@@ -1,113 +1,340 @@
-(function () {
-  var D = {
-    fr: {
-      title: "BillPay Hub : maquette", nav_impact: "Impact", nav_ask: "Demander", nav_vote: "Tribunal", nav_council: "Conseil", nav_lots: "Lots", nav_rule: "Règle d'or",
-      connect: "Connecter wallet", balance: "Solde disponible du solidarityWallet",
-      next: "Prochaine distribution dans 07:42:10 · 126 familles aidées",
-      ask_h: "Espace Demandeurs", ph_supplier: "Fournisseur (ex. électricité)", ph_amount: "Montant (€)",
-      u1: "Urgence : coupure imminente", u2: "Urgence : élevée", u3: "Normale",
-      ph_desc: "Décrivez votre situation (saisie manuelle, collage désactivé)",
-      privacy: "Vos données privées sont masquées avant publication. Un contrôle IA est effectué.",
-      send: "Envoyer ma demande", vote_h: "Tribunal Solidaire",
-      c1_t: "Facture d'électricité", c1_tag: "Urgent", c1_d: "Montant : 182 € · Fournisseur : électricité · Dossier #A91F", c1_v: "Validateurs 3 / 5",
-      c2_t: "Chauffage", c2_tag: "Élevée", c2_d: "Montant : 240 € · Fournisseur : gaz · Dossier #B22C", c2_v: "Validateurs 5 / 5 · Conseil 3 / 5",
-      yes: "OUI 👍", no: "NON 👎", co_h: "Conseil du mois",
-      co1: "3 pionniers", co1m: "Tirés au sort", co2: "Meilleur influenceur", co2m: "Vote plateforme",
-      co3: "Contributeur X · Facebook · TikTok", co3m: "Classement du mois", co4: "Meilleur trader", co4m: "Classement on-chain",
-      co5: "Wallet la plus fournie", co5m: "Moyenne du mois", co6: "Siège élu", co6m: "Vote sur le site", co6b: "Voter",
-      lots_h: "Lots communautaires",
-      lots_intro: "Les lots font entrer la communauté au capital du projet, dès le départ :",
-      lots_l1: "Au lancement : 100 lots pionniers à 10 USDC.",
-      lots_l2: "Ensuite, des séries de 50 USDC pour 100 USDC de BILL au prix du marché, qui n'ouvrent que lorsque le prix atteint x10 du prix de lancement.",
-      lots_l3: "Cliff de 45 jours, puis déblocage linéaire sur 30 jours.",
-      lots_l4: "Un lot par wallet.",
-      s1: "Série 1", s1sold: "41 / 90 lots vendus",
-      s1d: "Prix : 50 $ · Valeur : 100 USDC en BILL · Cliff 45 j puis déblocage linéaire sur 30 j · 1 lot par wallet",
-      buy: "Acheter un lot", claim: "Claim",
-      rule_h: "Règle d'or",
-      rule_p: "Une contribution solidaire de 10 % sur chaque trade finance l'aide directe. Ce n'est pas une taxe : c'est un geste de la communauté, transparent et vérifiable sur la chaîne.",
-      foot: "Maquette statique, aucune donnée réelle · Contribution solidaire de 10 % sur chaque trade"
-    },
-    en: {
-      title: "BillPay Hub: mockup", nav_impact: "Impact", nav_ask: "Request", nav_vote: "Court", nav_council: "Council", nav_lots: "Lots", nav_rule: "Golden rule",
-      connect: "Connect wallet", balance: "Available solidarityWallet balance",
-      next: "Next distribution in 07:42:10 · 126 families helped",
-      ask_h: "Requesters space", ph_supplier: "Provider (e.g. electricity)", ph_amount: "Amount (€)",
-      u1: "Urgent: imminent cut-off", u2: "Urgent: high", u3: "Normal",
-      ph_desc: "Describe your situation (manual typing, paste disabled)",
-      privacy: "Your private data is masked before publication. An AI check is performed.",
-      send: "Submit my request", vote_h: "Solidarity Vote Arena",
-      c1_t: "Electricity bill", c1_tag: "Urgent", c1_d: "Amount: 182 € · Provider: electricity · Case #A91F", c1_v: "Validators 3 / 5",
-      c2_t: "Heating", c2_tag: "High", c2_d: "Amount: 240 € · Provider: gas · Case #B22C", c2_v: "Validators 5 / 5 · Council 3 / 5",
-      yes: "YES 👍", no: "NO 👎", co_h: "Council of the month",
-      co1: "3 pioneers", co1m: "Drawn by lot", co2: "Top influencer", co2m: "Platform vote",
-      co3: "X · Facebook · TikTok contributor", co3m: "Monthly ranking", co4: "Top trader", co4m: "On-chain ranking",
-      co5: "Top wallet", co5m: "Monthly average", co6: "Elected seat", co6m: "Vote on the site", co6b: "Vote",
-      lots_h: "Community lots",
-      lots_intro: "Lots bring the community into the project from day one:",
-      lots_l1: "At launch: 100 pioneer lots at 10 USDC.",
-      lots_l2: "Later, series of 50 USDC for 100 USDC of BILL at market price, opening only when the price reaches x10 of the launch price.",
-      lots_l3: "45-day cliff, then 30-day linear vesting.",
-      lots_l4: "One lot per wallet.",
-      s1: "Series 1", s1sold: "41 / 90 lots sold",
-      s1d: "Price: $50 · Value: 100 USDC in BILL · 45-day cliff then 30-day linear vesting · 1 lot per wallet",
-      buy: "Buy a lot", claim: "Claim",
-      rule_h: "Golden rule",
-      rule_p: "A 10% solidarity contribution on every trade funds direct aid. It is not a tax: it is a community gesture, transparent and verifiable on-chain.",
-      foot: "Static mockup, no real data · 10% solidarity contribution on every trade"
-    },
-    ru: {
-      title: "BillPay Hub: макет", nav_impact: "Влияние", nav_ask: "Заявка", nav_vote: "Суд", nav_council: "Совет", nav_lots: "Лоты", nav_rule: "Золотое правило",
-      connect: "Подключить кошелёк", balance: "Доступный баланс solidarityWallet",
-      next: "Следующая выплата через 07:42:10 · помощь получили 126 семей",
-      ask_h: "Пространство заявителей", ph_supplier: "Поставщик (напр. электричество)", ph_amount: "Сумма (€)",
-      u1: "Срочно: отключение вот-вот", u2: "Срочно: высокая", u3: "Обычная",
-      ph_desc: "Опишите вашу ситуацию (только ручной ввод, вставка отключена)",
-      privacy: "Ваши личные данные скрываются перед публикацией. Выполняется проверка ИИ.",
-      send: "Отправить заявку", vote_h: "Арена голосования (Солидарный трибунал)",
-      c1_t: "Счёт за электричество", c1_tag: "Срочно", c1_d: "Сумма: 182 € · Поставщик: электричество · Дело #A91F", c1_v: "Валидаторы 3 / 5",
-      c2_t: "Отопление", c2_tag: "Высокая", c2_d: "Сумма: 240 € · Поставщик: газ · Дело #B22C", c2_v: "Валидаторы 5 / 5 · Совет 3 / 5",
-      yes: "ДА 👍", no: "НЕТ 👎", co_h: "Совет месяца",
-      co1: "3 пионера", co1m: "По жребию", co2: "Лучший инфлюенсер", co2m: "Голосование платформы",
-      co3: "Участник X · Facebook · TikTok", co3m: "Рейтинг месяца", co4: "Лучший трейдер", co4m: "Рейтинг в блокчейне",
-      co5: "Самый крупный кошелёк", co5m: "Среднее за месяц", co6: "Выборное место", co6m: "Голосование на сайте", co6b: "Голосовать",
-      lots_h: "Лоты сообщества",
-      lots_intro: "Лоты вводят сообщество в проект с самого начала:",
-      lots_l1: "На старте: 100 пионерских лотов по 10 USDC.",
-      lots_l2: "Позже серии по 50 USDC за 100 USDC в BILL по рыночной цене; они открываются только когда цена достигает x10 от стартовой.",
-      lots_l3: "Клифф 45 дней, затем линейная разблокировка в течение 30 дней.",
-      lots_l4: "Один лот на кошелёк.",
-      s1: "Серия 1", s1sold: "41 / 90 лотов продано",
-      s1d: "Цена: 50 $ · Стоимость: 100 USDC в BILL · Клифф 45 дн., затем линейная разблокировка 30 дн. · 1 лот на кошелёк",
-      buy: "Купить лот", claim: "Claim",
-      rule_h: "Золотое правило",
-      rule_p: "Солидарный взнос 10 % с каждой сделки финансирует прямую помощь. Это не налог: это жест сообщества, прозрачный и проверяемый в блокчейне.",
-      foot: "Статический макет, реальных данных нет · Солидарный взнос 10 % с каждой сделки"
-    }
-  };
-
-  function apply(lang) {
-    var d = D[lang] || D.fr;
-    document.documentElement.lang = lang;
-    document.querySelectorAll("[data-i18n]").forEach(function (el) {
-      var k = el.getAttribute("data-i18n");
-      if (d[k] !== undefined) el.textContent = d[k];
-    });
-    document.querySelectorAll("[data-i18n-ph]").forEach(function (el) {
-      var k = el.getAttribute("data-i18n-ph");
-      if (d[k] !== undefined) el.setAttribute("placeholder", d[k]);
-    });
-    var sel = document.getElementById("lang");
-    if (sel) sel.value = lang;
+// Traductions FR / EN / RU. Les trois langues doivent contenir exactement les mêmes clés.
+const D = {
+  fr: {
+    meta_title: "BillPay Hub — Chaque échange règle une facture",
+    meta_desc: "BillPay Protocol ($BILL) : une contribution de 10 % sur chaque échange, visible on-chain, finance le Fonds Solidaire qui paie des factures. Contrat sans owner, liquidité verrouillée à vie.",
+    skip: "Aller au contenu",
+    nav_label: "Navigation principale",
+    nav_dash: "Tableau de bord", nav_votes: "Votes", nav_rules: "Règles", nav_wallets: "Wallets", nav_github: "GitHub",
+    lang_label: "Langue",
+    w_connect: "Connecter le wallet", w_connecting: "Connexion…", w_disconnect: "Déconnecter",
+    w_switch: "Passer sur Base", w_wrong: "Mauvais réseau : passez sur Base.",
+    w_none: "Aucun wallet détecté. Installez un wallet compatible EIP-1193 (Rabby, MetaMask, Coinbase Wallet…).",
+    w_rejected: "Demande refusée dans le wallet.", w_error: "Erreur du wallet. Réessayez.",
+    w_pick: "Choisir un wallet", w_cancel: "Annuler", w_connected: "Connecté à Base",
+    pill: "Contrat sans owner · liquidité verrouillée à vie",
+    hero_h: "Le fonds qui paie les factures, voté par ses détenteurs.",
+    hero_p: "Chaque chiffre est lu directement sur le contrat. Rien n'est saisi à la main.",
+    cta_buy: "Acheter $BILL", cta_rules: "Lire les règles",
+    fund_h: "Fonds Solidaire", fund_invoice: "Facture #{n} payée", fund_invoice_none: "Facture : —",
+    fund_p: "5 % de chaque échange · adresse {a}", fund_addr_none: "à renseigner",
+    fund_bar: "Avancement du Fonds Solidaire",
+    stats_h: "Chiffres du contrat",
+    st_burned: "Tokens brûlés", st_liq: "ETH ajouté en liquidité", st_supply: "Supply en circulation", st_holders: "Détenteurs",
+    stats_src: "Source : relais de lecture du contrat. « — » signifie que la donnée n'est pas disponible.",
+    votes_h: "Votes en cours", votes_p: "Les détenteurs votent sur le paiement des factures. Connectez votre wallet pour participer.",
+    vote_placeholder: "Proposition à venir",
+    vote_for: "Pour", vote_against: "Contre", vote_do_for: "Voter pour", vote_do_against: "Voter contre",
+    vote_soon: "Le vote on-chain sera activé avec le contrat de gouvernance.",
+    vote_need_wallet: "Connectez votre wallet pour voter.",
+    rules_h: "Règles",
+    rules_1: "Chaque échange de $BILL porte une contribution de 10 %, visible on-chain.",
+    rules_2: "Le contrat n'a pas d'owner : personne ne peut modifier les règles après le déploiement.",
+    rules_3: "La liquidité est verrouillée à vie : elle ne peut pas être retirée.",
+    rules_4: "Les factures sont choisies et validées par vote des détenteurs, pas par l'équipe.",
+    rules_5: "Aucun conseil ni membre de l'équipe ne détient les clés d'un autre : chacun fournit son propre wallet.",
+    rules_6: "Ceci n'est pas un conseil financier. Un token peut perdre toute sa valeur.",
+    split_h: "Répartition de la contribution de 10 %",
+    split_fund: "Fonds Solidaire", split_mgmt: "Gestion", split_liq: "Auto-liquidité", split_burn: "Burn",
+    ads_h: "Espace partenaires", ads_label: "Emplacement sponsorisé",
+    ads_p: "Ces emplacements sont réservés à des partenaires. Ils sont toujours signalés comme sponsorisés et n'influencent pas les votes.",
+    ads_slot: "Votre marque ici", ads_slot_d: "Contactez-nous via le bot Telegram.",
+    foot_contract: "Contrat", foot_addr_none: "[ADRESSE — à renseigner après le déploiement]", foot_verified: "code vérifié sur l'explorateur",
+    foot_split: "Contribution 10 % : 5 % Fonds Solidaire, 2 % gestion, 1 % auto-liquidité, 2 % burn.",
+    foot_bot: "Bot Telegram", foot_group: "Groupe Telegram", foot_group_none: "Groupe Telegram (bientôt)",
+    nav_gov: "Gouvernance",
+    nav_risks: "Risques",
+    vote_bill: "Facture #{n}",
+    spam_h: "Anti-spam : faux dossiers et bots",
+    spam_p: "Les fausses factures et les comptes automatisés sont signalés « Spammer » en rouge sur la page de vote et exclus du décompte.",
+    spam_mock: "Aperçu illustratif, aucune donnée réelle.",
+    spam_flag: "Spammer",
+    spam_t1: "Facture sans justificatif",
+    spam_d1: "Dossier signalé : aucune preuve vérifiable, montant incohérent.",
+    spam_t2: "Compte automatisé",
+    spam_d2: "Wallet signalé : votes répétitifs et comportement de bot.",
+    spam_hidden: "Exclu du décompte.",
+    gov_h: "Gouvernance",
+    gov_p1: "Les détenteurs votent sur chaque facture. Le fondateur dispose d'un droit de veto uniquement sur le paiement ou l'annulation du paiement d'une facture.",
+    gov_p2: "Chaque veto doit être accompagné d'une raison, publiée publiquement. Sans raison publiée, il n'a pas lieu d'être.",
+    gov_p3: "Le fondateur n'a aucun autre pouvoir : il ne peut modifier ni le contrat, ni les règles, ni la liquidité.",
+    proof_h: "Preuve de paiement",
+    proof_p: "Dans la première phase, les paiements sont débloqués contre une vidéo ou une publication publique de la preuve de paiement.",
+    risks_h: "Risques",
+    risks_1: "Projet expérimental : le code n'a pas fait l'objet d'un audit indépendant.",
+    risks_2: "Un token peut perdre toute sa valeur. Vous pouvez tout perdre.",
+    risks_3: "Ceci n'est pas un conseil financier. N'engagez que ce que vous acceptez de perdre.",
+    risks_4: "Les contrats déployés ne peuvent pas être modifiés : une erreur ne peut pas être corrigée.",
+    risks_5: "Ne partagez jamais votre seed phrase ni votre clé privée, avec personne.",
+    foot_risk: "Avertissement : projet expérimental, non audité. Le token peut perdre toute sa valeur. Ceci n'est pas un conseil financier.",
+    nav_partners: "Partenaires",
+    wl_meta_title: "Wallets & coffre-fort — BillPay Hub",
+    wl_meta_desc: "Fournissez votre propre adresse, utilisez un Safe multisig et un wallet matériel. Ne partagez jamais votre seed phrase ni votre clé privée.",
+    wl_title: "Wallets & coffre-fort",
+    wl_intro: "Chaque participant fournit sa propre adresse. Personne, y compris l'équipe, ne détient ni ne demande la clé d'un autre.",
+    wl_own_h: "1. Votre propre adresse",
+    wl_own_p: "Collez l'adresse publique (0x…) du wallet que vous contrôlez. Le site ne la stocke pas et ne la transmet à personne.",
+    wl_addr_label: "Votre adresse publique",
+    wl_addr_ph: "0x…",
+    wl_check: "Vérifier",
+    wl_valid: "Format d'adresse valide.",
+    wl_invalid: "Adresse invalide : 0x suivi de 40 caractères hexadécimaux.",
+    wl_safe_h: "2. Coffre-fort Safe (multisig)",
+    wl_safe_p: "Pour les fonds de l'équipe ou d'un conseil, utilisez un Safe multisig : plusieurs signataires indépendants doivent approuver chaque transaction.",
+    wl_safe_info: "Safe détecté : {t} signature(s) requise(s) sur {o} signataire(s).",
+    wl_safe_none: "Aucun Safe trouvé à cette adresse.",
+    wl_safe_off: "La lecture automatique du Safe est désactivée sur ce site. Vérifiez votre Safe directement dans l'application Safe.",
+    wl_safe_err: "Lecture du Safe impossible pour le moment.",
+    wl_hw_h: "3. Wallet matériel",
+    wl_hw_p: "Utilisez un wallet matériel (Ledger, Trezor…) comme signataire du Safe. La clé ne quitte jamais l'appareil.",
+    wl_never_h: "Ne partagez jamais",
+    wl_never_p: "Ni seed phrase, ni clé privée, ni fichier de sauvegarde : ni à l'équipe, ni à un « support », ni à un bot. Personne de légitime ne vous les demandera.",
+    wl_key_h: "Aucune clé API dans ce site",
+    wl_key_p: "Ce site est statique et public. Toute clé d'API reste côté serveur, derrière un proxy en lecture seule.",
+    wl_bot_h: "Bot Telegram",
+    wl_bot_p: "Le bot officiel répond aux questions et annonce les factures. Il ne demandera jamais votre seed phrase.",
+    wl_bot_cta: "Ouvrir le bot Telegram",
+    wl_back: "← Retour à l'accueil",
+    foot_privacy: "Aucun traceur, aucun cookie. La langue choisie est mémorisée dans votre navigateur uniquement."
+  },
+  en: {
+    meta_title: "BillPay Hub — Every trade settles a bill",
+    meta_desc: "BillPay Protocol ($BILL): a 10% contribution on every trade, visible on-chain, funds the Solidarity Fund that pays bills. Ownerless contract, liquidity locked for life.",
+    skip: "Skip to content",
+    nav_label: "Main navigation",
+    nav_dash: "Dashboard", nav_votes: "Votes", nav_rules: "Rules", nav_wallets: "Wallets", nav_github: "GitHub",
+    lang_label: "Language",
+    w_connect: "Connect wallet", w_connecting: "Connecting…", w_disconnect: "Disconnect",
+    w_switch: "Switch to Base", w_wrong: "Wrong network: switch to Base.",
+    w_none: "No wallet detected. Install an EIP-1193 compatible wallet (Rabby, MetaMask, Coinbase Wallet…).",
+    w_rejected: "Request rejected in the wallet.", w_error: "Wallet error. Try again.",
+    w_pick: "Choose a wallet", w_cancel: "Cancel", w_connected: "Connected to Base",
+    pill: "Ownerless contract · liquidity locked for life",
+    hero_h: "The fund that pays bills, voted by its holders.",
+    hero_p: "Every figure is read straight from the contract. Nothing is typed in by hand.",
+    cta_buy: "Buy $BILL", cta_rules: "Read the rules",
+    fund_h: "Solidarity Fund", fund_invoice: "Bill #{n} paid", fund_invoice_none: "Bill: —",
+    fund_p: "5% of every trade · address {a}", fund_addr_none: "to be set",
+    fund_bar: "Solidarity Fund progress",
+    stats_h: "Contract figures",
+    st_burned: "Tokens burned", st_liq: "ETH added to liquidity", st_supply: "Circulating supply", st_holders: "Holders",
+    stats_src: "Source: contract read relay. “—” means the data is not available.",
+    votes_h: "Open votes", votes_p: "Holders vote on which bills get paid. Connect your wallet to take part.",
+    vote_placeholder: "Upcoming proposal",
+    vote_for: "For", vote_against: "Against", vote_do_for: "Vote for", vote_do_against: "Vote against",
+    vote_soon: "On-chain voting will be enabled with the governance contract.",
+    vote_need_wallet: "Connect your wallet to vote.",
+    rules_h: "Rules",
+    rules_1: "Every $BILL trade carries a 10% contribution, visible on-chain.",
+    rules_2: "The contract has no owner: nobody can change the rules after deployment.",
+    rules_3: "Liquidity is locked for life: it cannot be withdrawn.",
+    rules_4: "Bills are chosen and validated by holder votes, not by the team.",
+    rules_5: "No council or team member holds anyone else's keys: everyone provides their own wallet.",
+    rules_6: "This is not financial advice. A token can lose all of its value.",
+    split_h: "Breakdown of the 10% contribution",
+    split_fund: "Solidarity Fund", split_mgmt: "Management", split_liq: "Auto-liquidity", split_burn: "Burn",
+    ads_h: "Partner space", ads_label: "Sponsored slot",
+    ads_p: "These slots are reserved for partners. They are always labeled as sponsored and never influence votes.",
+    ads_slot: "Your brand here", ads_slot_d: "Contact us through the Telegram bot.",
+    foot_contract: "Contract", foot_addr_none: "[ADDRESS — to be set after deployment]", foot_verified: "code verified on the explorer",
+    foot_split: "10% contribution: 5% Solidarity Fund, 2% management, 1% auto-liquidity, 2% burn.",
+    foot_bot: "Telegram bot", foot_group: "Telegram group", foot_group_none: "Telegram group (soon)",
+    nav_gov: "Governance",
+    nav_risks: "Risks",
+    vote_bill: "Bill #{n}",
+    spam_h: "Anti-spam: fake bills and bots",
+    spam_p: "Fake bills and automated accounts are flagged “Spammer” in red on the vote page and excluded from the count.",
+    spam_mock: "Illustrative preview, no real data.",
+    spam_flag: "Spammer",
+    spam_t1: "Bill without proof",
+    spam_d1: "Flagged file: no verifiable proof, inconsistent amount.",
+    spam_t2: "Automated account",
+    spam_d2: "Flagged wallet: repetitive votes and bot behaviour.",
+    spam_hidden: "Excluded from the count.",
+    gov_h: "Governance",
+    gov_p1: "Holders vote on every bill. The founder has a veto only on paying or cancelling a bill payment.",
+    gov_p2: "Every veto must come with a reason, published publicly. Without a published reason, it has no standing.",
+    gov_p3: "The founder has no other power: they cannot change the contract, the rules or the liquidity.",
+    proof_h: "Proof of payment",
+    proof_p: "In the first phase, payments are released against a video or a public publication of the proof of payment.",
+    risks_h: "Risks",
+    risks_1: "Experimental project: the code has not been independently audited.",
+    risks_2: "A token can lose all of its value. You may lose everything.",
+    risks_3: "This is not financial advice. Only commit what you are willing to lose.",
+    risks_4: "Deployed contracts cannot be modified: a mistake cannot be fixed.",
+    risks_5: "Never share your seed phrase or private key with anyone.",
+    foot_risk: "Warning: experimental, unaudited project. The token may lose all of its value. This is not financial advice.",
+    nav_partners: "Partners",
+    wl_meta_title: "Wallets & vault — BillPay Hub",
+    wl_meta_desc: "Provide your own address, use a Safe multisig and a hardware wallet. Never share your seed phrase or private key.",
+    wl_title: "Wallets & vault",
+    wl_intro: "Every participant provides their own address. Nobody, including the team, holds or asks for anyone else's key.",
+    wl_own_h: "1. Your own address",
+    wl_own_p: "Paste the public address (0x…) of the wallet you control. The site does not store it or send it to anyone.",
+    wl_addr_label: "Your public address",
+    wl_addr_ph: "0x…",
+    wl_check: "Check",
+    wl_valid: "Valid address format.",
+    wl_invalid: "Invalid address: 0x followed by 40 hexadecimal characters.",
+    wl_safe_h: "2. Safe vault (multisig)",
+    wl_safe_p: "For team or council funds, use a Safe multisig: several independent signers must approve each transaction.",
+    wl_safe_info: "Safe detected: {t} signature(s) required out of {o} signer(s).",
+    wl_safe_none: "No Safe found at this address.",
+    wl_safe_off: "Automatic Safe lookup is disabled on this site. Check your Safe directly in the Safe app.",
+    wl_safe_err: "Unable to read the Safe right now.",
+    wl_hw_h: "3. Hardware wallet",
+    wl_hw_p: "Use a hardware wallet (Ledger, Trezor…) as a Safe signer. The key never leaves the device.",
+    wl_never_h: "Never share",
+    wl_never_p: "No seed phrase, no private key, no backup file: not with the team, not with “support”, not with a bot. No legitimate party will ask for them.",
+    wl_key_h: "No API key in this site",
+    wl_key_p: "This site is static and public. Any API key stays server-side, behind a read-only proxy.",
+    wl_bot_h: "Telegram bot",
+    wl_bot_p: "The official bot answers questions and announces bills. It will never ask for your seed phrase.",
+    wl_bot_cta: "Open the Telegram bot",
+    wl_back: "← Back to home",
+    foot_privacy: "No trackers, no cookies. Your language choice is stored in your browser only."
+  },
+  ru: {
+    meta_title: "BillPay Hub — Каждый обмен оплачивает счёт",
+    meta_desc: "BillPay Protocol ($BILL): взнос 10 % с каждого обмена, виден в блокчейне, финансирует Фонд солидарности, который оплачивает счета. Контракт без владельца, ликвидность заблокирована навсегда.",
+    skip: "К содержимому",
+    nav_label: "Основная навигация",
+    nav_dash: "Панель", nav_votes: "Голосования", nav_rules: "Правила", nav_wallets: "Кошельки", nav_github: "GitHub",
+    lang_label: "Язык",
+    w_connect: "Подключить кошелёк", w_connecting: "Подключение…", w_disconnect: "Отключить",
+    w_switch: "Перейти на Base", w_wrong: "Неверная сеть: перейдите на Base.",
+    w_none: "Кошелёк не найден. Установите кошелёк с поддержкой EIP-1193 (Rabby, MetaMask, Coinbase Wallet…).",
+    w_rejected: "Запрос отклонён в кошельке.", w_error: "Ошибка кошелька. Повторите попытку.",
+    w_pick: "Выберите кошелёк", w_cancel: "Отмена", w_connected: "Подключено к Base",
+    pill: "Контракт без владельца · ликвидность заблокирована навсегда",
+    hero_h: "Фонд, который оплачивает счета, по решению своих держателей.",
+    hero_p: "Каждая цифра читается прямо из контракта. Ничего не вводится вручную.",
+    cta_buy: "Купить $BILL", cta_rules: "Читать правила",
+    fund_h: "Фонд солидарности", fund_invoice: "Счёт №{n} оплачен", fund_invoice_none: "Счёт: —",
+    fund_p: "5 % с каждого обмена · адрес {a}", fund_addr_none: "будет указан",
+    fund_bar: "Прогресс Фонда солидарности",
+    stats_h: "Показатели контракта",
+    st_burned: "Сожжено токенов", st_liq: "ETH добавлено в ликвидность", st_supply: "Предложение в обращении", st_holders: "Держатели",
+    stats_src: "Источник: ретранслятор чтения контракта. «—» означает, что данных нет.",
+    votes_h: "Текущие голосования", votes_p: "Держатели голосуют за оплату счетов. Подключите кошелёк, чтобы участвовать.",
+    vote_placeholder: "Предстоящее предложение",
+    vote_for: "За", vote_against: "Против", vote_do_for: "Голосовать за", vote_do_against: "Голосовать против",
+    vote_soon: "Голосование в блокчейне будет включено вместе с контрактом управления.",
+    vote_need_wallet: "Подключите кошелёк, чтобы голосовать.",
+    rules_h: "Правила",
+    rules_1: "С каждого обмена $BILL взимается взнос 10 %, виден в блокчейне.",
+    rules_2: "У контракта нет владельца: после развёртывания никто не может изменить правила.",
+    rules_3: "Ликвидность заблокирована навсегда: её нельзя вывести.",
+    rules_4: "Счета выбирают и подтверждают голосованием держатели, а не команда.",
+    rules_5: "Ни член совета, ни член команды не хранит чужие ключи: каждый предоставляет свой кошелёк.",
+    rules_6: "Это не финансовый совет. Токен может потерять всю стоимость.",
+    split_h: "Распределение взноса 10 %",
+    split_fund: "Фонд солидарности", split_mgmt: "Управление", split_liq: "Авто-ликвидность", split_burn: "Сжигание",
+    ads_h: "Пространство партнёров", ads_label: "Спонсорское место",
+    ads_p: "Эти места зарезервированы для партнёров. Они всегда помечены как спонсорские и не влияют на голосования.",
+    ads_slot: "Здесь может быть ваш бренд", ads_slot_d: "Свяжитесь с нами через Telegram-бота.",
+    foot_contract: "Контракт", foot_addr_none: "[АДРЕС — будет указан после развёртывания]", foot_verified: "код проверен в обозревателе",
+    foot_split: "Взнос 10 %: 5 % Фонд солидарности, 2 % управление, 1 % авто-ликвидность, 2 % сжигание.",
+    foot_bot: "Telegram-бот", foot_group: "Telegram-группа", foot_group_none: "Telegram-группа (скоро)",
+    nav_gov: "Управление",
+    nav_risks: "Риски",
+    vote_bill: "Счёт №{n}",
+    spam_h: "Защита от спама: фальшивые счета и боты",
+    spam_p: "Фальшивые счета и автоматизированные аккаунты помечаются красным значком «Spammer» на странице голосования и не учитываются в подсчёте.",
+    spam_mock: "Иллюстративный макет, реальных данных нет.",
+    spam_flag: "Spammer",
+    spam_t1: "Счёт без подтверждения",
+    spam_d1: "Заявка помечена: нет проверяемого подтверждения, сумма не сходится.",
+    spam_t2: "Автоматизированный аккаунт",
+    spam_d2: "Кошелёк помечен: повторяющиеся голоса, поведение бота.",
+    spam_hidden: "Исключено из подсчёта.",
+    gov_h: "Управление",
+    gov_p1: "Держатели голосуют по каждому счёту. У основателя есть право вето только на оплату или отмену оплаты счёта.",
+    gov_p2: "Каждое вето должно сопровождаться причиной, опубликованной публично. Без опубликованной причины оно не имеет силы.",
+    gov_p3: "Других полномочий у основателя нет: он не может менять контракт, правила или ликвидность.",
+    proof_h: "Подтверждение оплаты",
+    proof_p: "На первом этапе платежи выпускаются при наличии видео или публичной публикации подтверждения оплаты.",
+    risks_h: "Риски",
+    risks_1: "Экспериментальный проект: код не прошёл независимый аудит.",
+    risks_2: "Токен может полностью потерять стоимость. Вы можете потерять всё.",
+    risks_3: "Это не финансовая консультация. Рискуйте только тем, что готовы потерять.",
+    risks_4: "Развёрнутые контракты нельзя изменить: ошибку исправить невозможно.",
+    risks_5: "Никому не сообщайте seed-фразу и приватный ключ.",
+    foot_risk: "Предупреждение: экспериментальный проект без аудита. Токен может полностью потерять стоимость. Это не финансовая консультация.",
+    nav_partners: "Партнёры",
+    wl_meta_title: "Кошельки и хранилище — BillPay Hub",
+    wl_meta_desc: "Укажите собственный адрес, используйте мультиподпись Safe и аппаратный кошелёк. Никогда не передавайте seed-фразу и приватный ключ.",
+    wl_title: "Кошельки и хранилище",
+    wl_intro: "Каждый участник указывает собственный адрес. Никто, включая команду, не хранит и не запрашивает чужой ключ.",
+    wl_own_h: "1. Ваш собственный адрес",
+    wl_own_p: "Вставьте публичный адрес (0x…) кошелька, которым вы управляете. Сайт его не сохраняет и никому не передаёт.",
+    wl_addr_label: "Ваш публичный адрес",
+    wl_addr_ph: "0x…",
+    wl_check: "Проверить",
+    wl_valid: "Формат адреса верный.",
+    wl_invalid: "Неверный адрес: 0x и 40 шестнадцатеричных символов.",
+    wl_safe_h: "2. Хранилище Safe (мультиподпись)",
+    wl_safe_p: "Для средств команды или совета используйте мультиподпись Safe: каждую транзакцию должны одобрить несколько независимых подписантов.",
+    wl_safe_info: "Safe найден: требуется подписей — {t} из {o}.",
+    wl_safe_none: "По этому адресу Safe не найден.",
+    wl_safe_off: "Автоматическая проверка Safe на этом сайте отключена. Проверьте Safe в приложении Safe.",
+    wl_safe_err: "Сейчас не удаётся прочитать Safe.",
+    wl_hw_h: "3. Аппаратный кошелёк",
+    wl_hw_p: "Используйте аппаратный кошелёк (Ledger, Trezor…) как подписанта Safe. Ключ никогда не покидает устройство.",
+    wl_never_h: "Никогда не передавайте",
+    wl_never_p: "Ни seed-фразу, ни приватный ключ, ни файл резервной копии: ни команде, ни «поддержке», ни боту. Никто добросовестный их не попросит.",
+    wl_key_h: "В этом сайте нет API-ключей",
+    wl_key_p: "Сайт статичный и публичный. Любой API-ключ хранится только на сервере, за прокси только для чтения.",
+    wl_bot_h: "Telegram-бот",
+    wl_bot_p: "Официальный бот отвечает на вопросы и объявляет счета. Он никогда не попросит вашу seed-фразу.",
+    wl_bot_cta: "Открыть Telegram-бота",
+    wl_back: "← На главную",
+    foot_privacy: "Без трекеров и cookies. Выбранный язык хранится только в вашем браузере."
   }
+};
 
-  var saved = null;
-  try { saved = localStorage.getItem("lang"); } catch (e) {}
-  var lang = D[saved] ? saved : "fr";
-  apply(lang);
-  var sel = document.getElementById("lang");
-  if (sel) sel.addEventListener("change", function () {
-    try { localStorage.setItem("lang", sel.value); } catch (e) {}
-    apply(sel.value);
-  });
-})();
+export const DICT = D;
+export const LANGS = Object.keys(D);
+let lang = "fr";
+
+export function extend(extra) {
+  for (const l of LANGS) Object.assign(D[l], extra[l]);
+}
+
+export function t(key, vars) {
+  let s = (D[lang] && D[lang][key]) ?? D.fr[key] ?? key;
+  if (vars) for (const k in vars) s = s.replace("{" + k + "}", vars[k]);
+  return s;
+}
+
+export function getLang() { return lang; }
+
+export function applyI18n() {
+  document.documentElement.lang = lang;
+  document.querySelectorAll("[data-i18n]").forEach((el) => { el.textContent = t(el.dataset.i18n); });
+  for (const attr of ["placeholder", "aria-label", "content", "title"]) {
+    const ds = "i18n-" + attr.replace("aria-", "");
+    document.querySelectorAll("[data-" + ds + "]").forEach((el) => el.setAttribute(attr, t(el.getAttribute("data-" + ds))));
+  }
+  document.title = t(document.documentElement.dataset.title || "meta_title");
+  const sel = document.getElementById("lang");
+  if (sel) sel.value = lang;
+  document.dispatchEvent(new CustomEvent("bp:lang", { detail: lang }));
+}
+
+export function setLang(l) {
+  if (!D[l]) return;
+  lang = l;
+  try { localStorage.setItem("lang", l); } catch (e) { /* stockage indisponible */ }
+  applyI18n();
+}
+
+export function initI18n() {
+  let l = new URLSearchParams(location.search).get("lang");
+  if (!D[l]) { try { l = localStorage.getItem("lang"); } catch (e) { l = null; } }
+  if (!D[l]) l = ((navigator.language || "fr").slice(0, 2));
+  lang = D[l] ? l : "fr";
+  const sel = document.getElementById("lang");
+  if (sel) sel.addEventListener("change", () => setLang(sel.value));
+  applyI18n();
+}
