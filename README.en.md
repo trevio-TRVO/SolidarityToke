@@ -6,14 +6,14 @@ Deflationary token on Base, with no admin: nothing can be modified after deploym
 
 ## Golden rule: the Circular Contribution Ecosystem
 
-> Every transaction on our token is not a cost, but an automatic 10% solidarity contribution, reinjected directly to stabilize the market and change lives.
+> Every trade of the token is subject to an automatic 10% contribution, split by the code as below. No return and no price evolution is promised.
 >
 > - **5% Direct Aid**: allocated instantly to fund and pay the electricity and heating bills of families in difficulty.
-> - **2% Deflationary Scarcity**: deducted to permanently destroy tokens on every trade, creating a mathematical shortage that increases the value of holders' wallets.
+> - **2% Deflationary Scarcity**: deducted to permanently destroy tokens on every trade. This reduces supply, with no guarantee of any effect on price.
 > - **2% Operational Support**: dedicated to guerrilla marketing and autonomous technical maintenance to propel the project.
-> - **1% Auto-Liquidity**: locked in by the code to continuously strengthen the price floor and protect traders.
+> - **1% Auto-Liquidity**: locked in by the code to add liquidity to the pair. It does not create any price floor.
 >
-> Here, the more active the market, the greater the social impact. Speculating becomes an act of solidarity.
+> The higher the volume, the larger the contribution collected. The token is risky and can lose all its value: only commit what you can afford to lose.
 
 **The contribution only applies to trades** (buying/selling through the liquidity pair), not to simple transfers nor to lot `claim()` calls.
 
