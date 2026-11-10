@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="fr" data-title="wl_meta_title">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Wallets &amp; coffre-fort — BillPay Hub</title>
+<meta name="description" content="Fournissez votre propre adresse, utilisez un Safe multisig et un wallet matériel. Ne partagez jamais votre seed phrase ni votre clé privée." data-i18n-content="wl_meta_desc">
+<meta name="theme-color" content="#07111F">
+<link rel="canonical" href="https://trevio-trvo.github.io/billpay-protocol/wallets.html">
+<link rel="alternate" hreflang="fr" href="https://trevio-trvo.github.io/billpay-protocol/wallets.html">
+<link rel="alternate" hreflang="en" href="https://trevio-trvo.github.io/billpay-protocol/wallets.html?lang=en">
+<link rel="alternate" hreflang="ru" href="https://trevio-trvo.github.io/billpay-protocol/wallets.html?lang=ru">
+<link rel="alternate" hreflang="x-default" href="https://trevio-trvo.github.io/billpay-protocol/wallets.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="BillPay Protocol">
+<meta property="og:title" content="Wallets &amp; coffre-fort — BillPay Hub">
+<meta property="og:description" content="10 % de contribution, visible on-chain. Liquidité verrouillée à vie. Aucun owner.">
+<meta property="og:url" content="https://trevio-trvo.github.io/billpay-protocol/wallets.html">
+<meta property="og:image" content="https://trevio-trvo.github.io/billpay-protocol/assets/og-banner.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="fr_FR">
+<meta property="og:locale:alternate" content="en_US">
+<meta property="og:locale:alternate" content="ru_RU">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Wallets &amp; coffre-fort — BillPay Hub">
+<meta name="twitter:description" content="10 % de contribution, visible on-chain. Liquidité verrouillée à vie. Aucun owner.">
+<meta name="twitter:image" content="https://trevio-trvo.github.io/billpay-protocol/assets/og-banner.png">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="assets/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="style.css">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebPage","name":"Wallets & coffre-fort","url":"https://trevio-trvo.github.io/billpay-protocol/wallets.html","inLanguage":["fr","en","ru"],"isPartOf":{"@type":"WebSite","name":"BillPay Hub","url":"https://trevio-trvo.github.io/billpay-protocol/"}}
+</script>
+</head>
+<body>
+<a class="skip" href="#main" data-i18n="skip">Aller au contenu</a>
+<header class="top">
+<div class="bar-in">
+<a class="logo" href="./" aria-label="BillPay Protocol"><img src="assets/logo.svg" alt="" width="40" height="40"><span class="wm"><b>Bill<span>Pay</span></b><small>PROTOCOL · $BILL</small></span></a>
+<nav class="main" aria-label="Navigation principale" data-i18n-label="nav_label">
+<a href="./#dashboard" data-i18n="nav_dash">Tableau de bord</a>
+<a href="./#votes" data-i18n="nav_votes">Votes</a>
+<a href="./#governance" data-i18n="nav_gov">Gouvernance</a>
+<a href="./#rules" data-i18n="nav_rules">Règles</a>
+<a href="./#risks" data-i18n="nav_risks">Risques</a>
+<a href="wallets.html" aria-current="page" data-i18n="nav_wallets">Wallets</a>
+<a href="https://github.com/trevio-TRVO/billpay-protocol" data-github rel="noopener" data-i18n="nav_github">GitHub</a>
+</nav>
+<div class="tools">
+<select id="lang" aria-label="Langue" data-i18n-label="lang_label"><option value="fr">FR</option><option value="en">EN</option><option value="ru">RU</option></select>
+<button type="button" id="wallet-btn" class="btn pri" data-i18n="w_connect">Connecter le wallet</button>
+<button type="button" id="wallet-switch" class="btn ghost" hidden data-i18n="w_switch">Passer sur Base</button>
+</div>
+<p id="wallet-status" class="status" role="status" aria-live="polite"></p>
+</div>
+</header>
+
+<main id="main" class="wrap">
+<section class="hero">
+<p><a href="./" data-i18n="wl_back">← Retour à l'accueil</a></p>
+<h1 data-i18n="wl_title">Wallets &amp; coffre-fort</h1>
+<p class="lead" data-i18n="wl_intro"></p>
+</section>
+
+<section aria-labelledby="own-h">
+<div class="glass">
+<h2 id="own-h" data-i18n="wl_own_h"></h2>
+<p class="muted" data-i18n="wl_own_p"></p>
+<form id="addr-form" novalidate>
+<label for="addr" data-i18n="wl_addr_label">Votre adresse publique</label>
+<input id="addr" name="addr" autocomplete="off" spellcheck="false" inputmode="text" maxlength="42" data-i18n-placeholder="wl_addr_ph" placeholder="0x…">
+<div class="row"><button type="submit" class="btn pri" data-i18n="wl_check">Vérifier</button></div>
+<p class="status" id="addr-msg" role="status" aria-live="polite"></p>
+</form>
+</div>
+</section>
+
+<section aria-labelledby="safe-h">
+<div class="grid">
+<div class="glass"><h2 id="safe-h" data-i18n="wl_safe_h"></h2><p class="muted" data-i18n="wl_safe_p"></p><p class="status" id="safe-msg" role="status" aria-live="polite"></p></div>
+<div class="glass"><h2 data-i18n="wl_hw_h"></h2><p class="muted" data-i18n="wl_hw_p"></p></div>
+</div>
+</section>
+
+<section aria-labelledby="never-h">
+<div class="glass note warn">
+<h2 id="never-h" data-i18n="wl_never_h"></h2>
+<p data-i18n="wl_never_p"></p>
+<h3 data-i18n="wl_key_h"></h3>
+<p class="muted" data-i18n="wl_key_p"></p>
+</div>
+</section>
+
+<section aria-labelledby="bot-h">
+<div class="glass">
+<h2 id="bot-h" data-i18n="wl_bot_h"></h2>
+<p class="muted" data-i18n="wl_bot_p"></p>
+<div class="row"><a class="btn pri" id="bot-link" href="https://t.me/Billpayprotocolbot" rel="noopener" data-i18n="wl_bot_cta"></a></div>
+</div>
+</section>
+</main>
+
+<footer class="foot">
+<div class="wrap">
+<p class="risk-foot" data-i18n="foot_risk"></p>
+<div class="links">
+<a href="https://t.me/Billpayprotocolbot" rel="noopener" data-i18n="foot_bot">Bot Telegram</a>
+<a data-github href="https://github.com/trevio-TRVO/billpay-protocol" rel="noopener">GitHub</a>
+</div>
+<p data-i18n="foot_privacy"></p>
+</div>
+</footer>
+<script type="module" src="main.js"></script>
+</body>
+</html>
